@@ -1,0 +1,1047 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <idinfo>
+    <citation>
+      <citeinfo>
+        <origin>Roy M. Rasmussen</origin>
+        <origin>Fei Chen</origin>
+        <origin>Changhai Liu</origin>
+        <origin>Kyoko Ikeda</origin>
+        <origin>Andreas Prein</origin>
+        <origin>Ju-Hye Kim</origin>
+        <origin>Timothy Schneider</origin>
+        <origin>Aiguo Dai</origin>
+        <origin>David Gochis</origin>
+        <origin>Aubrey Dugger</origin>
+        <origin>Yongxin Zhang</origin>
+        <origin>Abby Jaye</origin>
+        <origin>Jimy Dudhia</origin>
+        <origin>Cinlin He</origin>
+        <origin>Michelle Harrold</origin>
+        <origin>Lulin Xue</origin>
+        <origin>Sisi Chen</origin>
+        <origin>Andrew Newman</origin>
+        <origin>Erin Dougherty</origin>
+        <origin>Ronnie Abolafia-Rozenzweig</origin>
+        <origin>Nicholas Lybarger</origin>
+        <origin>Roland Viger</origin>
+        <origin>Krista Dunne</origin>
+        <origin>Kristen Rasmussen</origin>
+        <origin>Gonzalo Miguez-Macho</origin>
+        <pubdate>20230221</pubdate>
+        <title>CONUS404: Four-kilometer long-term regional hydroclimate reanalysis over the conterminous United States (ver. 3.0, June 2026)</title>
+        <geoform>NetCDF</geoform>
+        <onlink>https://doi.org/10.5066/P9PHPK4F</onlink>
+      </citeinfo>
+    </citation>
+    <descript>
+      <abstract>CONUS404 is a unique, high-resolution hydro-climate dataset appropriate for forcing hydrological models and conducting meteorological analysis over the contiguous United States. This metadata record serves as documentation for the authoritative version of the CONUS404 atmospheric forcing dataset. CONUS404 is an abbreviated description for the original 40-year dataset: CONtiguous United States for 40 years at 4-kilometer grid spacing; however, the dataset has been revised to now include 45 years of data. This is a dataset of historical conditions (water years 1980-2024, October 1, 1979-September 30, 2024) and has sufficient temporal and spatial detail to resolve mesoscale atmospheric processes, making it appropriate for forcing hydrological models and conducting meteorological analyses. The spatial domain extends beyond the CONUS into Canada and Mexico, thereby capturing transboundary river basins and covering all contributing areas for the CONUS surface waters. 
+
+The CONUS404 simulation was run by the National Center for Atmospheric Research (NCAR) as part of a collaboration with the U.S. Geological Survey (USGS) Water Mission Area. It is the output of the Weather Research and Forecasting (WRF) v3.9.1.1 model (Skamarock and others, 2008), forced with ERA5 reanalysis data (Hersbach and others, 2020), and consists of time series of nearly 200 2-dimensional variables and a wide range of 3-dimensional variables. CONUS404 is the successor to the CONUS1 dataset (Liu and others, 2017) with improved representation of weather and climate conditions in the central United States due to the addition of a shallow groundwater module in the Noah-Multiparameterization (Noah-MP) Land Surface Model, among other improvements.
+
+Access to Original Dataset
+The full CONUS404 simulation output files are approximately one petabyte (1 PB) in volume and are being archived on the U.S. Geological Survey's Black Pearl* tape drive system. This is raw model output in a format that does not support efficient subsetting, so it is not optimal for many users. We have two additional pathways that are likely to provide more convenient access to a subset of the data, each of which is described below. The data available through each of these access points will be in a different format than the original model output archived on Black Pearl; however, the data values are scientifically equivalent. Please reach out to the data release contact if you think you need access to the original model outputs archived on Black Pearl.
+
+The metadata in this data release was organized to align with the structure of the original model outputs, but it can be used as a reference for data accessed at any of the access points. The original model outputs include three sets of files, each of which has a different time step.
+
+1. wrfout files are hourly files with all model outputs. There are a total of 394,488 files stored as 1 netCDF4 file per hour.
+2. auxhist24 files are 15-minute files for precipitation and 2-meter temperature. There are a total of 16,437 files stored as 1 netCDF4 file per day (96 time steps in each); these daily files have been bundled into monthly tar files.
+3. wrfxtrm files are daily minimum, maximum, and mean values of a selection of surface variables. There are a total of 16,437 files stored as 1 netCDF4 file per day; these daily files have been bundled into monthly tar files. 
+
+The Entity and Attribute element of the metadata record documents data dictionaries for all variables in each of the three types of output files. These data dictionaries are attached to this data release.  
+
+NCAR Research Data Archive 
+The first alternate access point is NCAR’s Research Data Archive (RDA). The values in this dataset are the same as those in the raw files, with an exception for some variables having a slight reduction in numerical precision, but no loss of scientific information. In addition, duplicate and empty data variables have been removed. In addition, 14 additional variables derived from the raw output have been added to this version of the CONUS404 dataset (details are provided in the data dictionary found on the “Documentation” tab on the RDA page for this dataset). RDA data access can be found at https://rda.ucar.edu/datasets/ds559.0/. There is no cost associated with data download. 
+
+Analysis-Ready Zarr Store 
+Access to a subset of the CONUS404 data is also provided in zarr format, which is a chunked data format (https://www.unidata.ucar.edu/blogs/developer/entry/chunking_data_why_it_matters) that is optimized for workflows that only require a subset of the dataset or workflows that utilize distributed computing. This data includes a subset of the variables available in the wrfout and wrfxtrm files from the original model output. Access to these data files is described here: https://hytest-org.github.io/hytest/dataset_access/CONUS404_ACCESS.html.
+
+Please refer to the Supplemental Information element of this metadata record for further information on CONUS404.
+
+*Any use of trade, firm, or product names is for descriptive purposes only and does not imply endorsement by the U.S. Government.</abstract>
+      <purpose>CONUS404 provides a high-resolution hydro-climate dataset appropriate for forcing hydrological models and conducting meteorological analyses over the conterminous United States.</purpose>
+      <supplinf>The CONUS404 dataset, produced with the Weather Research and Forecasting (WRF) v3.9.1.1 model, is the successor to the CONUS1 dataset (Liu and others, 2017) with improved representation of the weather and climate conditions in the central United States due to the addition of a shallow groundwater module and several other improvements in the Noah-MP land surface model (improved calculation of snow cover fraction, improved inputs for snow emissivity and wind-canopy absorption). It also uses a more up-to-date and higher-resolution reanalysis dataset (ERA5) as input and covers a longer period than CONUS1. This simulation minimizes boundary effects and captures transboundary river basins.   
+
+The CONUS404 data was created using a configuration of WRF with the Thompson aerosol-aware microphysics scheme (Thompson and Eidhammer, 2014), the Yonsei University Scheme planetary boundary layer scheme (Hong and others, 2006), the rapid radiative transfer model (RRTMG) (Iacono and others, 2008), and the Noah-MP land-surface model (Niu and others, 2011; Yang and others, 2011). Noah-MP is coupled to the “Miguez-Macho-Fan” groundwater scheme, which includes a representation of a shallow aquifer and its interaction with the soil column above it, which was found to significantly reduce precipitation and temperature biases in the central United States (Barlage and others, 2021). The CONUS404 simulations are spectrally nudged towards ERA5 to preserve the characteristics of large-scale circulation on sub-daily timescales and avoid climate drift for long-term integrations.</supplinf>
+    </descript>
+    <timeperd>
+      <timeinfo>
+        <rngdates>
+          <begdate>19791001</begdate>
+          <enddate>20240930</enddate>
+        </rngdates>
+      </timeinfo>
+      <current>publication date</current>
+    </timeperd>
+    <status>
+      <progress>Complete</progress>
+      <update>None planned</update>
+    </status>
+    <spdom>
+      <bounding>
+        <westbc>-131.1649</westbc>
+        <eastbc>-63.1184</eastbc>
+        <northbc>52.8980</northbc>
+        <southbc>20.1149</southbc>
+      </bounding>
+    </spdom>
+    <keywords>
+      <theme>
+        <themekt>ISO 19115 Topic Category</themekt>
+        <themekey>inlandWaters</themekey>
+        <themekey>climatologyMeteorologyAtmosphere</themekey>
+      </theme>
+      <theme>
+        <themekt>None</themekt>
+        <themekey>regional climate model</themekey>
+        <themekey>weather research and forecast model</themekey>
+        <themekey>high resolution climate simulation</themekey>
+        <themekey>hydroclimate</themekey>
+        <themekey>hydrology</themekey>
+        <themekey>precipitation</themekey>
+      </theme>
+      <theme>
+        <themekt>USGS Metadata Identifier</themekt>
+        <themekey>USGS:6372cd09d34ed907bf6c6ab1</themekey>
+      </theme>
+    </keywords>
+    <accconst>Please see 'Distribution Info' for details.</accconst>
+    <useconst>None.  Users are advised to read the dataset's metadata thoroughly to understand appropriate use and data limitations.</useconst>
+    <ptcontac>
+      <cntinfo>
+        <cntperp>
+          <cntper>Model Data Management Function</cntper>
+          <cntorg>U.S. Geological Survey, WATER</cntorg>
+        </cntperp>
+        <cntpos>Integrated Modeling and Prediction Division</cntpos>
+        <cntaddr>
+          <addrtype>mailing address</addrtype>
+          <address>12201 Sunrise Valley Dr.</address>
+          <city>Reston</city>
+          <state>VA</state>
+          <postal>20192</postal>
+          <country>US</country>
+        </cntaddr>
+        <cntvoice>703-648-4000</cntvoice>
+        <cntemail>MDMF@usgs.gov</cntemail>
+      </cntinfo>
+    </ptcontac>
+    <datacred>Development of CONUS404 was led and conducted by the National Center for Atmospheric Research (NCAR).</datacred>
+    <native>This dataset was produced using the Advanced Research WRF modeling system v3.9.1.1. Modifications to the snow formulation in the Noah-MP land-surface model used by WRF were also included; these changes are not part of WRF v3.9.1.1. The changes include: 1) snow cover fraction formulation was improved to better match satellite observed snow cover and albedo and to reduce winter/spring temperature cold bias in midwestern U.S. regions covered by snow, 2) snow emissivity value for fresh snow were changed from 1.0 to 0.95; and 3) wind-canopy absorption parameters modified as function of land-cover and land-use types based on Goudriaan (1977). These modifications are described in He and others (2021). The modeling system was run in a Linux operating system on the U.S. Geological Survey’s McKinley supercomputer.</native>
+    <crossref>
+      <citeinfo>
+        <origin>Michael Barlage</origin>
+        <origin>Fei Chen</origin>
+        <origin>Roy Rasmussen</origin>
+        <origin>Zhe Zhang</origin>
+        <origin>Gonzalo Miguez‐Macho</origin>
+        <pubdate>20210306</pubdate>
+        <title>The Importance of Scale‐Dependent Groundwater Processes in Land‐Atmosphere Interactions Over the Central United States</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Geophysical Research Letters</sername>
+          <issue>vol. 48, issue 5</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>American Geophysical Union (AGU)</publish>
+        </pubinfo>
+        <onlink>https://doi.org/10.1029/2020GL092171</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Michael Barlage</origin>
+        <origin>Mukul Tewari</origin>
+        <origin>Fei Chen</origin>
+        <origin>Gonzalo Miguez-Macho</origin>
+        <origin>Zong-Liang Yang</origin>
+        <origin>Guo-Yue Niu</origin>
+        <pubdate>20150224</pubdate>
+        <title>The effect of groundwater interaction in North American regional climate simulations with WRF/Noah-MP</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Climatic Change</sername>
+          <issue>vol. 129, issue 3-4</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>Springer Science and Business Media LLC</publish>
+        </pubinfo>
+        <othercit>ppg. 485-498</othercit>
+        <onlink>https://doi.org/10.1007/s10584-014-1308-8</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Christopher Daly</origin>
+        <origin>Ronald P. Neilson</origin>
+        <origin>Donald L. Phillips</origin>
+        <pubdate>199402</pubdate>
+        <title>A Statistical-Topographic Model for Mapping Climatological Precipitation over Mountainous Terrain</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Journal of Applied Meteorology</sername>
+          <issue>vol. 33, issue 2</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>American Meteorological Society</publish>
+        </pubinfo>
+        <othercit>ppg. 140-158</othercit>
+        <onlink>https://doi.org/10.1175/1520-0450(1994)033&lt;0140:ASTMFM&gt;2.0.CO;2</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Jan Goudriaan</origin>
+        <pubdate>1977</pubdate>
+        <title>Crop micrometeorology: a simulation study</title>
+        <geoform>publication</geoform>
+        <othercit>Goudriaan, Jan. (1977). Crop micrometeorology: a simulation study. Proefschrift Wageningen, 1977. Simulation Monographs, PUDOC, Wageningen.</othercit>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Cenlin He</origin>
+        <origin>Fei Chen</origin>
+        <origin>Ronnie Abolafia‐Rosenzweig</origin>
+        <origin>Kyoko Ikeda</origin>
+        <origin>Changhai Liu</origin>
+        <origin>Roy Rasmussen</origin>
+        <pubdate>20211118</pubdate>
+        <title>What Causes the Unobserved Early‐Spring Snowpack Ablation in Convection‐Permitting WRF Modeling Over Utah Mountains?</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Journal of Geophysical Research: Atmospheres</sername>
+          <issue>vol. 126, issue 22</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>American Geophysical Union (AGU)</publish>
+        </pubinfo>
+        <onlink>https://doi.org/10.1029/2021JD035284</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Hans Hersbach</origin>
+        <origin>Bill Bell</origin>
+        <origin>Paul Berrisford</origin>
+        <origin>Shoji Hirahara</origin>
+        <origin>András Horányi</origin>
+        <origin>Joaquín Muñoz‐Sabater</origin>
+        <origin>Julien Nicolas</origin>
+        <origin>Carole Peubey</origin>
+        <origin>Raluca Radu</origin>
+        <origin>Dinand Schepers</origin>
+        <origin>Adrian Simmons</origin>
+        <origin>Cornel Soci</origin>
+        <origin>Saleh Abdalla</origin>
+        <origin>Xavier Abellan</origin>
+        <origin>Gianpaolo Balsamo</origin>
+        <origin>Peter Bechtold</origin>
+        <origin>Gionata Biavati</origin>
+        <origin>Jean Bidlot</origin>
+        <origin>Massimo Bonavita</origin>
+        <origin>Giovanna De Chiara</origin>
+        <origin>Per Dahlgren</origin>
+        <origin>Dick Dee</origin>
+        <origin>Michail Diamantakis</origin>
+        <origin>Rossana Dragani</origin>
+        <origin>Johannes Flemming</origin>
+        <origin>Richard Forbes</origin>
+        <origin>Manuel Fuentes</origin>
+        <origin>Alan Geer</origin>
+        <origin>Leo Haimberger</origin>
+        <origin>Sean Healy</origin>
+        <origin>Robin J. Hogan</origin>
+        <origin>Elías Hólm</origin>
+        <origin>Marta Janisková</origin>
+        <origin>Sarah Keeley</origin>
+        <origin>Patrick Laloyaux</origin>
+        <origin>Philippe Lopez</origin>
+        <origin>Cristina Lupu</origin>
+        <origin>Gabor Radnoti</origin>
+        <origin>Patricia de Rosnay</origin>
+        <origin>Iryna Rozum</origin>
+        <origin>Freja Vamborg</origin>
+        <origin>Sebastien Villaume</origin>
+        <origin>Jean‐Noël Thépaut</origin>
+        <pubdate>20200615</pubdate>
+        <title>The ERA5 global reanalysis</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Quarterly Journal of the Royal Meteorological Society</sername>
+          <issue>vol. 146, issue 730</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>Wiley</publish>
+        </pubinfo>
+        <othercit>ppg. 1999-2049</othercit>
+        <onlink>https://doi.org/10.1002/qj.3803</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Song-You Hong</origin>
+        <origin>Yign Noh</origin>
+        <origin>Jimy Dudhia</origin>
+        <pubdate>20060901</pubdate>
+        <title>A New Vertical Diffusion Package with an Explicit Treatment of Entrainment Processes</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Monthly Weather Review</sername>
+          <issue>vol. 134, issue 9</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>American Meteorological Society</publish>
+        </pubinfo>
+        <othercit>ppg. 2318-2341</othercit>
+        <onlink>https://doi.org/10.1175/MWR3199.1</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Michael J. Iacono</origin>
+        <origin>Jennifer S. Delamere</origin>
+        <origin>Eli J. Mlawer</origin>
+        <origin>Mark W. Shephard</origin>
+        <origin>Shepard A. Clough</origin>
+        <origin>William D. Collins</origin>
+        <pubdate>20080702</pubdate>
+        <title>Radiative forcing by long-lived greenhouse gases: Calculations with the AER radiative transfer models</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Journal of Geophysical Research</sername>
+          <issue>vol. 113, issue D13</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>American Geophysical Union (AGU)</publish>
+        </pubinfo>
+        <onlink>https://doi.org/10.1029/2008JD009944</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>D.H. Kitzmiller</origin>
+        <origin>W. Wu</origin>
+        <origin>Z. Zhang</origin>
+        <origin>N. Patrick</origin>
+        <origin>X. Tan</origin>
+        <pubdate>2018</pubdate>
+        <title>The Analysis of Record for Calibration: A High-Resolution Precipitation and Surface Weather Dataset for the United States</title>
+        <geoform>publication</geoform>
+        <othercit>Kitzmiller, D.H., Wu, W., Zhang, Z., Patrick, N., Tan, X., 2018: The Analysis of Record for Calibration: A High-Resolution Precipitation and Surface Weather Dataset for the United States. American Geophysical Union, Fall Meeting, Washington, DC, USA, 2018</othercit>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Kenneth R. Knapp</origin>
+        <origin>Scott L. Wilkins</origin>
+        <pubdate>20180806</pubdate>
+        <title>Gridded Satellite (GridSat) GOES and CONUS data</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Earth System Science Data</sername>
+          <issue>vol. 10, issue 3</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>Copernicus GmbH</publish>
+        </pubinfo>
+        <othercit>ppg. 1417-1425</othercit>
+        <onlink>https://doi.org/10.5194/essd-10-1417-2018</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Changhai Liu</origin>
+        <origin>Kyoko Ikeda</origin>
+        <origin>Roy Rasmussen</origin>
+        <origin>Mike Barlage</origin>
+        <origin>Andrew J. Newman</origin>
+        <origin>Andreas F. Prein</origin>
+        <origin>Fei Chen</origin>
+        <origin>Liang Chen</origin>
+        <origin>Martyn Clark</origin>
+        <origin>Aiguo Dai</origin>
+        <origin>Jimy Dudhia</origin>
+        <origin>Trude Eidhammer</origin>
+        <origin>David Gochis</origin>
+        <origin>Ethan Gutmann</origin>
+        <origin>Sopan Kurkute</origin>
+        <origin>Yanping Li</origin>
+        <origin>Gregory Thompson</origin>
+        <origin>David Yates</origin>
+        <pubdate>20160829</pubdate>
+        <title>Continental-scale convection-permitting modeling of the current and future climate of North America</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Climate Dynamics</sername>
+          <issue>vol. 49, issue 1-2</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>Springer Science and Business Media LLC</publish>
+        </pubinfo>
+        <othercit>ppg. 71-95</othercit>
+        <onlink>https://doi.org/10.1007/s00382-016-3327-9</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Gonzalo Miguez‐Macho</origin>
+        <origin>Ying Fan</origin>
+        <origin>Christopher P. Weaver</origin>
+        <origin>Robert Walko</origin>
+        <origin>Alan Robock</origin>
+        <pubdate>20070706</pubdate>
+        <title>Incorporating water table dynamics in climate modeling: 2. Formulation, validation, and soil moisture simulation</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Journal of Geophysical Research: Atmospheres</sername>
+          <issue>vol. 112, issue D13</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>American Geophysical Union (AGU)</publish>
+        </pubinfo>
+        <onlink>https://doi.org/10.1029/2006JD008112</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Guo-Yue Niu</origin>
+        <origin>Zong-Liang Yang</origin>
+        <origin>Kenneth E. Mitchell</origin>
+        <origin>Fei Chen</origin>
+        <origin>Michael B. Ek</origin>
+        <origin>Michael Barlage</origin>
+        <origin>Anil Kumar</origin>
+        <origin>Kevin Manning</origin>
+        <origin>Dev Niyogi</origin>
+        <origin>Enrique Rosero</origin>
+        <origin>Mukul Tewari</origin>
+        <origin>Youlong Xia</origin>
+        <pubdate>20110624</pubdate>
+        <title>The community Noah land surface model with multiparameterization options (Noah-MP): 1. Model description and evaluation with local-scale measurements</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Journal of Geophysical Research</sername>
+          <issue>vol. 116, issue D12</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>American Geophysical Union (AGU)</publish>
+        </pubinfo>
+        <onlink>https://doi.org/10.1029/2010JD015139</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Manajit Sengupta</origin>
+        <origin>Aron Habte</origin>
+        <origin>Yu Xie</origin>
+        <origin>Anthony Lopez</origin>
+        <origin>Grant Buster</origin>
+        <pubdate>2018</pubdate>
+        <title>National Solar Radiation Database (NSRDB)</title>
+        <geoform>publication</geoform>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>DOE Open Energy Data Initiative (OEDI); National Renewable Energy Laboratory</publish>
+        </pubinfo>
+        <onlink>https://doi.org/10.25984/1810289</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>William Skamarock</origin>
+        <origin>Joseph Klemp</origin>
+        <origin>Jimy Dudhia</origin>
+        <origin>David Gill</origin>
+        <origin>Dale Barker</origin>
+        <origin>Wei Wang</origin>
+        <origin>Xiang-Yu Huang</origin>
+        <origin>Michael Duda</origin>
+        <pubdate>2008</pubdate>
+        <title>A Description of the Advanced Research WRF Version 3</title>
+        <geoform>publication</geoform>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>UCAR/NCAR</publish>
+        </pubinfo>
+        <onlink>https://doi.org/10.5065/d68s4mvh</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Gregory Thompson</origin>
+        <origin>Trude Eidhammer</origin>
+        <pubdate>20140922</pubdate>
+        <title>A Study of Aerosol Impacts on Clouds and Precipitation Development in a Large Winter Cyclone</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Journal of the Atmospheric Sciences</sername>
+          <issue>vol. 71, issue 10</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>American Meteorological Society</publish>
+        </pubinfo>
+        <othercit>ppg. 3636-3658</othercit>
+        <onlink>https://doi.org/10.1175/JAS-D-13-0305.1</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Gregory Thompson</origin>
+        <origin>Paul R. Field</origin>
+        <origin>Roy M. Rasmussen</origin>
+        <origin>William D. Hall</origin>
+        <pubdate>20081201</pubdate>
+        <title>Explicit Forecasts of Winter Precipitation Using an Improved Bulk Microphysics Scheme. Part II: Implementation of a New Snow Parameterization</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Monthly Weather Review</sername>
+          <issue>vol. 136, issue 12</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>American Meteorological Society</publish>
+        </pubinfo>
+        <othercit>ppg. 5095-5115</othercit>
+        <onlink>https://doi.org/10.1175/2008MWR2387.1</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>USDA Natural Resources Conservation Service</origin>
+        <pubdate>2022</pubdate>
+        <title>SNOwpack TELemetry Network (SNOTEL)</title>
+        <geoform>publication</geoform>
+        <othercit>USDA Natural Resources Conservation Service, 2022: SNOwpack TELemetry Network (SNOTEL). NRCS. Available online at: https://data.nal.usda.gov/dataset/snowpack-telemetry-network-snotel.</othercit>
+        <onlink>https://data.nal.usda.gov/dataset/snowpack-telemetry-network-snotel</onlink>
+        <onlink>https://data.nal.usda.gov/dataset/national-water-and-climate-center-interactive-map</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>W. Wang</origin>
+        <origin>C. Bruyere</origin>
+        <origin>M. Duda</origin>
+        <origin>J. Dudhia</origin>
+        <origin>D. Gill</origin>
+        <origin>M. Kavulich</origin>
+        <origin>K. Keene</origin>
+        <origin>C. Ming</origin>
+        <origin>H. Lin</origin>
+        <origin>J. Michalakes</origin>
+        <origin>S. Rizvi</origin>
+        <origin>X. Zhang</origin>
+        <origin>J. Berner</origin>
+        <origin>H. Soyoung</origin>
+        <origin>K. Fossel</origin>
+        <pubdate>2017</pubdate>
+        <title>ARW Version 3 Modeling System User’s Guide</title>
+        <geoform>publication</geoform>
+        <othercit>Wang W., Bruyère, C., Duda, M., Dudhia, J., Gill, Kavulich, M., Keene, K., Ming, C., Lin, H., Michalakes, J., Rizvi, S., Zhang, X., Berner, J., Soyoung, H., and Fossell, K., 2017: ARW Version 3 Modeling System User’s Guide. Available online at: http://www2.mmm.ucar.edu/wrf/users/docs/user_guide_V3/user_guide_V3.9/ARWUsersGuideV3.9.pdf.</othercit>
+        <onlink>http://www2.mmm.ucar.edu/wrf/users/docs/user_guide_V3/user_guide_V3.9/ARWUsersGuideV3.9.pdf</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>David Wuertz</origin>
+        <origin>Jay Lawrimore</origin>
+        <origin>Bryant Korzeniewski</origin>
+        <pubdate>2019</pubdate>
+        <title>Cooperative Observer Program (COOP) Hourly Precipitation Data (HPD), Version 2</title>
+        <geoform>publication</geoform>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>NOAA National Centers for Environmental Information</publish>
+        </pubinfo>
+        <onlink>https://doi.org/10.25921/p7j8-2170</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Zong-Liang Yang</origin>
+        <origin>Guo-Yue Niu</origin>
+        <origin>Kenneth E. Mitchell</origin>
+        <origin>Fei Chen</origin>
+        <origin>Michael B. Ek</origin>
+        <origin>Michael Barlage</origin>
+        <origin>Laurent Longuevergne</origin>
+        <origin>Kevin Manning</origin>
+        <origin>Dev Niyogi</origin>
+        <origin>Mukul Tewari</origin>
+        <origin>Youlong Xia</origin>
+        <pubdate>20110624</pubdate>
+        <title>The community Noah land surface model with multiparameterization options (Noah-MP): 2. Evaluation over global river basins</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Journal of Geophysical Research</sername>
+          <issue>vol. 116, issue D12</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>American Geophysical Union (AGU)</publish>
+        </pubinfo>
+        <onlink>https://doi.org/10.1029/2010JD015140</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Zhe Zhang</origin>
+        <origin>Yanping Li</origin>
+        <origin>Michael Barlage</origin>
+        <origin>Fei Chen</origin>
+        <origin>Gonzalo Miguez-Macho</origin>
+        <origin>Andrew Ireson</origin>
+        <origin>Zhenhua Li</origin>
+        <pubdate>20200217</pubdate>
+        <title>Modeling groundwater responses to climate  change in the Prairie Pothole Region</title>
+        <geoform>publication</geoform>
+        <serinfo>
+          <sername>Hydrology and Earth System Sciences</sername>
+          <issue>vol. 24, issue 2</issue>
+        </serinfo>
+        <pubinfo>
+          <pubplace>n/a</pubplace>
+          <publish>Copernicus GmbH</publish>
+        </pubinfo>
+        <othercit>ppg. 655-672</othercit>
+        <onlink>https://doi.org/10.5194/hess-24-655-2020</onlink>
+      </citeinfo>
+    </crossref>
+    <crossref>
+      <citeinfo>
+        <origin>Jeff T Falgout</origin>
+        <origin>Janice Gordon</origin>
+        <origin>Matthew J Davis</origin>
+        <origin>Brad Williams</origin>
+        <origin>USGS Advanced Research Computing</origin>
+        <pubdate>2019</pubdate>
+        <title>USGS McKinley Supercomputer</title>
+        <geoform>dataset</geoform>
+        <pubinfo>
+          <pubplace>https://www.sciencebase.gov</pubplace>
+          <publish>U.S. Geological Survey</publish>
+        </pubinfo>
+        <onlink>https://doi.org/10.5066/p9psw367</onlink>
+      </citeinfo>
+    </crossref>
+  </idinfo>
+  <dataqual>
+    <attracc>
+      <attraccr>Beyond the data file review associated with the USGS Data Release process, the quality of a number of CONUS404 variables was evaluated. Because the architecture of the WRF model used to create the CONUS404 has been designed and documented to ensure consistency of scientific concepts, computation, and precision, the evaluation process is able to focus on this subset and have high certainty that the quality of the other CONUS404 variables is consistent with that subset. In addition, the selected variables (precipitation, temperature, and downward shortwave radiation) are especially important for hydrologic modeling, which is the target use case for this dataset.  
+
+CONUS404 precipitation was compared with PRISM (Daly and others, 1994), which is itself a well-established data production system that has itself had extensive quality assurance. Trends in the two datasets were consistent. There were slight differences in monthly summaries in winter for limited regions but generally agreed throughout the year over CONUS. The probability density function of CONUS404 hourly precipitation tracked well with COOP-based observations (Wuertz, Lawrimore, and Korzeniewski, 2018); snow simulations tracked well with SNOTEL observations (NRCS, 2022), although simulated Snow-Water Equivalent was biased low. CONUS404 provided superior estimates of heavy/extreme hourly precipitation, relative to the ERA5 and AORC datasets (Kitzmiller and others, 2018) which are analyses of observations and other simulations. Visual patterns and frequencies of simulated mesoscale convective events tracked well with GridSat (Knapp and Wilkins, 2017) observations, improving on the ERA5 data used as input to the CONUS404 process.  
+
+CONUS404 temperature was also compared with PRISM, with very slight differences in daily mean temperature. CONUS404 showed a slight cold bias in the eastern U.S. and a slight warm bias in the western U.S., relative to ASOS observations. At elevation in the Western U.S., CONUS404 showed a warm bias relative to SNOTEL temperatures, but tracked very closely with an NCAR temperature dataset (implying that SNOTEL itself has a cold-bias, which has been reported by Ohler and others, 2015). 
+
+CONUS404 downward shortwave radiation showed an extremely strong correlation with the satellite-based National Solar Radiation Data Base (Sengupta and others, 2018), but with a general positive bias in the mid-Atlantic, Montana, and Idaho regions.</attraccr>
+    </attracc>
+    <logic>Negative values of near-surface specific humidity (Q2), a diagnostic output variable, were identified. The origin of these anomalous values is unknown.</logic>
+    <complete>The dataset does not contain null or empty values. Geographic coverage spans the conterminous United States.</complete>
+    <posacc>
+      <horizpa>
+        <horizpar>No horizontal positional accuracy tests were performed.</horizpar>
+      </horizpa>
+      <vertacc>
+        <vertaccr>No vertical positional accuracy tests were performed.</vertaccr>
+      </vertacc>
+    </posacc>
+    <lineage>
+      <procstep>
+        <procdesc>ERA5 data was downloaded and reformatted for use as input to WRF Preprocessing System.</procdesc>
+        <procdate>20211215</procdate>
+      </procstep>
+      <procstep>
+        <procdesc>The WRF Pre-Processing System (WPS) (Wang and others, 2017) was run to a) define model domain and generate a static map definition file (geogrid), b) ungrib ERA5 data to convert to intermediate files (ungrib), and c) spatially regrid key variables from ERA5 data for model domain at select vertical levels (metgrid).</procdesc>
+        <procdate>20211215</procdate>
+      </procstep>
+      <procstep>
+        <procdesc>WRF was run to generate WRF input files using WRF Real Data Simulation and perform simulation. WRF produces raw WRF output file for every simulated hour. WRF also generates a file for 15-minute increment precipitation and 2-meter temperature on a daily increment, and a file for the extreme values for a selection of variables within the day.</procdesc>
+        <procdate>20230202</procdate>
+      </procstep>
+      <procstep>
+        <procdesc>Output files were post-processed to generate compressed and NetCDF-4 format of (1) 394,488 hourly files with all model outputs (wrfout), (2) 16,437 daily files containing data at 15-minute increments for precipitation and 2-meter temperature (auxhist24), and (3) 16,437 daily minimum, maximum, and average values of a selection of surface variables (wrfxtrm).</procdesc>
+        <procdate>20230202</procdate>
+      </procstep>
+      <procstep>
+        <procdesc>Post-processed files were checked for any corruption and data gaps. As a part of the post-processing procedure, number and sizes of files are checked at the end of processing, and monthly precipitation and surface temperature are plotted and compared against PRISM climate data as a preliminary check for the model performance.</procdesc>
+        <procdate>20230202</procdate>
+      </procstep>
+    </lineage>
+  </dataqual>
+  <spdoinfo>
+    <direct>Raster</direct>
+    <rastinfo>
+      <rasttype>Pixel</rasttype>
+      <rowcount>1015</rowcount>
+      <colcount>1367</colcount>
+    </rastinfo>
+  </spdoinfo>
+  <spref>
+    <horizsys>
+      <planar>
+        <mapproj>
+          <mapprojn>Lambert Conformal Conic</mapprojn>
+          <lambertc>
+            <stdparll>30.0</stdparll>
+            <stdparll>60.0</stdparll>
+            <longcm>-97.0</longcm>
+            <latprjo>40.0</latprjo>
+            <feast>0.0</feast>
+            <fnorth>0.0</fnorth>
+          </lambertc>
+        </mapproj>
+        <planci>
+          <plance>coordinate pair</plance>
+          <coordrep>
+            <absres>0.000000007819145331211531</absres>
+            <ordres>0.000000007819145331211531</ordres>
+          </coordrep>
+          <plandu>meters</plandu>
+        </planci>
+      </planar>
+      <geodetic>
+        <horizdn>WRF-Sphere</horizdn>
+        <ellips>WRF-Sphere</ellips>
+        <semiaxis>6370000</semiaxis>
+        <denflat>0.0</denflat>
+      </geodetic>
+    </horizsys>
+  </spref>
+  <eainfo>
+    <detailed>
+      <enttyp>
+        <enttypl>wrfout_datadictionary.csv</enttypl>
+        <enttypd>Comma separated table of all variables in wrf output files</enttypd>
+        <enttypds>U.S. Geological Survey</enttypds>
+      </enttyp>
+      <attr>
+        <attrlabl>varname</attrlabl>
+        <attrdef>Name of variable</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Name of variable</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>long_name</attrlabl>
+        <attrdef>Long descriptive name of variable</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Long descriptive name of variable</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>accumulated</attrlabl>
+        <attrdef>Boolean to describe if variable represents an accumulation over time</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Boolean to describe if variable represents an accumulation over time. When true indicates the values are accumulated over a given integration period.</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>integration_length</attrlabl>
+        <attrdef>The period over which an accumulated variable is integrated</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>The period over which an accumulated variable is integrated. Blanks indicate that the variable is not accumulated over time.</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>description</attrlabl>
+        <attrdef>Original WRF-provided descriptive name of variable from WRF model output file</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Original WRF-provided descriptive name of variable from WRF model output file</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>notes</attrlabl>
+        <attrdef>Additional notes such as equations required to compute final values</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Additional notes such as equations required to compute final values</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>units</attrlabl>
+        <attrdef>Units of measurement for a given variable</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Units of measurement for a given variable</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>scale_factor</attrlabl>
+        <attrdef>Factor that values should be multiplied by to get actual value</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Factor that values should be multiplied by to get actual value. If no scale factor provided, no multiplication is needed.</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>valid_range</attrlabl>
+        <attrdef>Range of valid values</attrdef>
+        <attrdefs>U.S. Geological Survey</attrdefs>
+        <attrdomv>
+          <udom>Range of valid values</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>flag_values</attrlabl>
+        <attrdef>Comma-separated list of flag values</attrdef>
+        <attrdefs>U.S. Geological Survey</attrdefs>
+        <attrdomv>
+          <udom>Comma-separated list of flag values</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>flag_meanings</attrlabl>
+        <attrdef>Space-separated list of descriptive words or phrases for each flag value (multi-word phrases are connected with underscores)</attrdef>
+        <attrdefs>U.S. Geological Survey</attrdefs>
+        <attrdomv>
+          <udom>Space-separated list of descriptive words or phrases for each flag value (multi-word phrases are connected with underscores)</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>dimensions</attrlabl>
+        <attrdef>The axes of the quantity a variable contains</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>The axes of the quantity a variable contains</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>coordinates</attrlabl>
+        <attrdef>The coordinate variables (in space and time) for the variable. Spatial coordinate reference system information is described in the global attributes of each output file, as described in Wang and others, 2017.</attrdef>
+        <attrdefs>Wang and others, 2017</attrdefs>
+        <attrdomv>
+          <udom>The coordinate variables (in space and time) for the variable</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>datatype</attrlabl>
+        <attrdef>Data type for values</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Data type for values</udom>
+        </attrdomv>
+      </attr>
+    </detailed>
+    <detailed>
+      <enttyp>
+        <enttypl>auxhist24_ datadictionary.csv</enttypl>
+        <enttypd>Comma separated table of variables in 15-minute wrf output files with precipitation amount and 2-m temperature variables</enttypd>
+        <enttypds>U.S. Geological Survey</enttypds>
+      </enttyp>
+      <attr>
+        <attrlabl>varname</attrlabl>
+        <attrdef>Name of variable</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Name of variable</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>long_name</attrlabl>
+        <attrdef>Long descriptive name of variable</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Long descriptive name of variable</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>accumulated</attrlabl>
+        <attrdef>Boolean to describe if variable represents an accumulation over time</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Boolean to describe if variable represents an accumulation over time. When true indicates the values are accumulated over a given integration period.</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>integration_length</attrlabl>
+        <attrdef>The period over which an accumulated variable is integrated</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>The period over which an accumulated variable is integrated. Blanks indicate that the variable is not accumulated over time.</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>description</attrlabl>
+        <attrdef>Original WRF-provided descriptive name of variable from WRF model output file</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Original WRF-provided descriptive name of variable from WRF model output file</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>notes</attrlabl>
+        <attrdef>Additional notes such as equations required to compute final values</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Additional notes such as equations required to compute final values</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>units</attrlabl>
+        <attrdef>Units of measurement for a given variable</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Units of measurement for a given variable</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>scale_factor</attrlabl>
+        <attrdef>Factor that values should be multiplied by to get actual value</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Factor that values should be multiplied by to get actual value. If no scale factor provided, no multiplication is needed.</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>dimensions</attrlabl>
+        <attrdef>The axes of the quantity a variable contains</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>The axes of the quantity a variable contains</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>coordinates</attrlabl>
+        <attrdef>The coordinate variables (in space and time) for the variable. Spatial coordinate reference system information is described in the global attributes of each output file, as described in Wang and others, 2017.</attrdef>
+        <attrdefs>Wang and others, 2017</attrdefs>
+        <attrdomv>
+          <udom>The coordinate variables (in space and time) for the variable</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>datatype</attrlabl>
+        <attrdef>Data type for values</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Data type for values</udom>
+        </attrdomv>
+      </attr>
+    </detailed>
+    <detailed>
+      <enttyp>
+        <enttypl>wrfxtrm_datadictionary.csv</enttypl>
+        <enttypd>Comma separated table of variables in daily minimum/maximum/average wrf output files with a selection of surface variables</enttypd>
+        <enttypds>U.S. Geological Survey</enttypds>
+      </enttyp>
+      <attr>
+        <attrlabl>varname</attrlabl>
+        <attrdef>Name of variable</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Name of variable</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>long_name</attrlabl>
+        <attrdef>Long descriptive name of variable</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Long descriptive name of variable</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>description</attrlabl>
+        <attrdef>Original WRF-provided descriptive name of variable from WRF model output file</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Original WRF-provided descriptive name of variable from WRF model output file</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>units</attrlabl>
+        <attrdef>Units of measurement for a given variable</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Units of measurement for a given variable</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>dimensions</attrlabl>
+        <attrdef>The axes of the quantity a variable contains</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>The axes of the quantity a variable contains</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>coordinates</attrlabl>
+        <attrdef>The coordinate variables (in space and time) for the variable. Spatial coordinate reference system information is described in the global attributes of each output file, as described in Wang and others, 2017.</attrdef>
+        <attrdefs>Wang and others, 2017</attrdefs>
+        <attrdomv>
+          <udom>The coordinate variables (in space and time) for the variable</udom>
+        </attrdomv>
+      </attr>
+      <attr>
+        <attrlabl>datatype</attrlabl>
+        <attrdef>Data type for values</attrdef>
+        <attrdefs>National Center for Atmospheric Research</attrdefs>
+        <attrdomv>
+          <udom>Data type for values</udom>
+        </attrdomv>
+      </attr>
+    </detailed>
+  </eainfo>
+  <distinfo>
+    <distrib>
+      <cntinfo>
+        <cntperp>
+          <cntper>GS ScienceBase</cntper>
+          <cntorg>U.S. Geological Survey</cntorg>
+        </cntperp>
+        <cntaddr>
+          <addrtype>mailing address</addrtype>
+          <address>Denver Federal Center, Building 810, Mail Stop 302</address>
+          <city>Denver</city>
+          <state>CO</state>
+          <postal>80255</postal>
+          <country>US</country>
+        </cntaddr>
+        <cntvoice>1-888-275-8747</cntvoice>
+        <cntemail>sciencebase@usgs.gov</cntemail>
+      </cntinfo>
+    </distrib>
+    <distliab>Unless otherwise stated, all data, metadata and related materials are considered to satisfy the quality standards relative to the purpose for which the data were collected. Although these data and associated metadata have been reviewed for accuracy and completeness by the U.S. Geological Survey, no warranty expressed or implied is made regarding the display or utility of the data on any other system or for general or scientific purposes, nor shall the act of distribution constitute any such warranty.</distliab>
+    <custom>The dataset is not available online. The raw model outputs contained in this dataset are stored on U.S. Geological Survey Black Pearl tape drives and can be made available upon request.</custom>
+  </distinfo>
+  <metainfo>
+    <metd>20260603</metd>
+    <metc>
+      <cntinfo>
+        <cntperp>
+          <cntper>Model Data Management Function</cntper>
+          <cntorg>U.S. Geological Survey, WATER</cntorg>
+        </cntperp>
+        <cntpos>Integrated Modeling and Prediction Division</cntpos>
+        <cntaddr>
+          <addrtype>mailing address</addrtype>
+          <address>12201 Sunrise Valley Dr.</address>
+          <city>Reston</city>
+          <state>VA</state>
+          <postal>20192</postal>
+          <country>US</country>
+        </cntaddr>
+        <cntvoice>703-648-4000</cntvoice>
+        <cntemail>MDMF@usgs.gov</cntemail>
+      </cntinfo>
+    </metc>
+    <metstdn>FGDC Content Standard for Digital Geospatial Metadata</metstdn>
+    <metstdv>FGDC-STD-001-1998</metstdv>
+  </metainfo>
+</metadata>

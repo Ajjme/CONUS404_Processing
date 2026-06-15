@@ -1,0 +1,29 @@
+Version History for USGS Data Release: "CONUS404: Four-kilometer long-term regional hydroclimate reanalysis over the conterminous United States"
+
+---------------------------------------------
+Version 1.0 posted online February 21, 2023
+
+Version 1.0 citation:
+Rasmussen, R.M., Chen, F., Liu, C., Ikeda, K., Prein, A., Kim, J., Schneider, T., Dai, A., Gochis, D., Dugger, A., Zhang, Y., Jaye, A., Dudhia, J., He, C., Harrold, M., Xue, L., Chen, S., Newman, A., Dougherty, E., Abolafia-Rozenzweig, R., Lybarger, N., Viger, R., Dunne, K., Rasmussen, K., Miguez-Macho, G., 2023, Four-kilometer long-term regional hydroclimate reanalysis over the conterminous United States (CONUS), 1979-2020: U.S. Geological Survey data release, https://doi.org/10.5066/P9PHPK4F
+
+---------------------------------------------
+
+Version 2.0 reposted online December 2023
+
+Version 2.0 citation:
+Rasmussen, R.M., Chen, F., Liu, C., Ikeda, K., Prein, A., Kim, J., Schneider, T., Dai, A., Gochis, D., Dugger, A., Zhang, Y., Jaye, A., Dudhia, J., He, C., Harrold, M., Xue, L., Chen, S., Newman, A., Dougherty, E., Abolafia-Rozenzweig, R., Lybarger, N., Viger, R., Dunne, K., Rasmussen, K., Miguez-Macho, G., 2023, CONUS404: Four-kilometer long-term regional hydroclimate reanalysis over the conterminous United States (ver. 2.0, Dec. 2023): U.S. Geological Survey data release, https://doi.org/10.5066/P9PHPK4F
+
+Changes in version 2.0:
+
+Two additional years of data (water years 2021 and 2022) were appended to the dataset.
+
+---------------------------------------------
+
+Version 3.0 reposted online June 2026
+
+Version 3.0 citation:
+Rasmussen, R.M., Chen, F., Liu, C., Ikeda, K., Prein, A., Kim, J., Schneider, T., Dai, A., Gochis, D., Dugger, A., Zhang, Y., Jaye, A., Dudhia, J., He, C., Harrold, M., Xue, L., Chen, S., Newman, A., Dougherty, E., Abolafia-Rozenzweig, R., Lybarger, N., Viger, R., Dunne, K., Rasmussen, K., Miguez-Macho, G., 2025, CONUS404: Four-kilometer long-term regional hydroclimate reanalysis over the conterminous United States (ver. 3.0, June 2026): U.S. Geological Survey data release, https://doi.org/10.5066/P9PHPK4F
+
+Changes in version 3.0:
+
+Two additional years of data (water years 2023 and 2024) were appended to the dataset.
