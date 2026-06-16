@@ -268,11 +268,14 @@ def create_output_netcdf(output_path, max_wind_data, grid_info):
 
 def main():
     # Paths
-    raw_data_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\raw_data'
+    raw_data_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\year_raw_data\water_year_2024'
     tar_file = os.path.join(raw_data_dir, 'wrfxtrm_conusii_202310.tar')
-    extract_dir = raw_data_dir
-    output_file = os.path.join(raw_data_dir, 'wrfxtrm_d01_max_spduv10max.nc')
-    
+    extract_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\year_raw_data\water_year_2024_output')
+    output_file = os.path.join(raw_data_dir, 'wrfxtrm_d01_max_spduv10max_2024.nc')
+    # raw_data_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\raw_data'
+    # tar_file = os.path.join(raw_data_dir, 'wrfxtrm_conusii_202310.tar')
+    # extract_dir = raw_data_dir
+    # output_file = os.path.join(raw_data_dir, 'wrfxtrm_d01_max_spduv10max.nc')
     # Check if tar file exists
     if not os.path.exists(tar_file):
         print(f"Error: Tar file not found: {tar_file}")
