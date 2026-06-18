@@ -168,7 +168,7 @@ def create_output_netcdf(output_path, max_wind_data, grid_info):
     spduv_var.coordinates = 'lat lon lat_2d lon_2d'
     spduv_var[:] = max_wind_data
     
-    ds_out.title = 'CONUS404 Maximum Water Year Wind Speed at 10m (2013)'
+    ds_out.title = 'CONUS404 Maximum Water Year Wind Speed at 10m (1981)'
     ds_out.history = f'Created {datetime.now().isoformat()} across 12 monthly tar archives.'
     ds_out.Conventions = 'CF-1.7'
     
@@ -176,10 +176,10 @@ def create_output_netcdf(output_path, max_wind_data, grid_info):
     print(f"\nOutput file created successfully!")
 
 def main():
-    # Paths configured for Water Year 2013
-    raw_data_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\year_raw_data\water_year_2013'
-    extract_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\year_raw_data\water_year_2013_output'
-    output_file = os.path.join(raw_data_dir, 'wrfxtrm_d01_max_spduv10max_2013.nc')
+    # Paths configured for Water Year 1981
+    raw_data_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\year_raw_data\water_year_1981'
+    extract_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\year_raw_data\water_year_1981_output'
+    output_file = os.path.join(raw_data_dir, 'wrfxtrm_d01_max_spduv10max_1981.nc')
     
     # Create extraction directory if it doesn't exist
     os.makedirs(extract_dir, exist_ok=True)

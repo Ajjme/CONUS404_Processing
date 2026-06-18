@@ -11,7 +11,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 print("Loading NetCDF file...")
-nc_file = 'raw_data/wrfxtrm_d01_max_spduv10max.nc'
+nc_file = 'year_raw_data/water_year_2021/wrfxtrm_d01_max_spduv10max_2021.nc'
 ds = xr.open_dataset(nc_file)
 
 print("\n=== DATASET INFORMATION ===")

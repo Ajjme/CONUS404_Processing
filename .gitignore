@@ -1,2 +1,5 @@
 raw_data/
 year_raw_data/
+output/
+.venv/
+__pycache__/

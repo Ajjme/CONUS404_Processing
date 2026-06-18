@@ -2,6 +2,10 @@
 
 Opening Tar files and turning data into 40 max yearly points for every geo-location, then computing extreme value statistics (GEV) to determine wind speed return periods.
 
+Data gathered from https://app.globus.org/activity
+https://www.sciencebase.gov/catalog/item/6372cd09d34ed907bf6c6ab1
+
+Globus Access Portal for the Raw Output Files	https://app.globus.org/file-manager?origin_id=12aeed7a-9693-4f99-9816-96911c1322d2&origin_path=%2F&two_pane=true
 ---
 
 ## Overview

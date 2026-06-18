@@ -2,7 +2,7 @@
 Phase 1: Validate and load 40 years of annual maximum wind speed data.
 
 This script:
-1. Scans raw_data/annual_max/ for all wrfxtrm_d01_max_spduv10max_YYYY.nc files
+1. Scans year_raw_data/water_year_YYYY/ for all wrfxtrm_d01_max_spduv10max_YYYY.nc files
 2. Validates each file (grid consistency, variable presence)
 3. Loads all years into a single consolidated array
 4. Saves validated data as intermediate HDF5 for downstream processing
@@ -17,8 +17,9 @@ from pathlib import Path
 from datetime import datetime
 
 def find_annual_max_files(base_dir):
-    """Find all annual max wrfxtrm files in the directory."""
-    pattern = os.path.join(base_dir, 'wrfxtrm_d01_max_spduv10max_*.nc')
+    """Find all annual max wrfxtrm files across all water_year subdirectories."""
+    # FIX: Added 'water_year_*' to the pattern to search all subfolders dynamically
+    pattern = os.path.join(base_dir, 'water_year_*', 'wrfxtrm_d01_max_spduv10max_*.nc')
     files = sorted(glob.glob(pattern))
     return files
 
@@ -33,10 +34,10 @@ def extract_year_from_filename(filename):
 
 def validate_file(file_path):
     """
-    Validate a single annual max NetCDF file.
+    Validate a single annual max NetCDF file using updated lat/lon dimensions.
     
     Returns:
-        (is_valid, grid_shape, data, errors/warnings)
+        (is_valid, grid_shape, data, errors, warnings)
     """
     errors = []
     warnings = []
@@ -46,21 +47,22 @@ def validate_file(file_path):
     try:
         ds = nc.Dataset(file_path, 'r')
         
-        # Check dimensions
-        if 'south_north' not in ds.dimensions or 'west_east' not in ds.dimensions:
-            errors.append("Missing south_north or west_east dimension")
+        # FIX: Check for the dimensions actually generated ('lat' and 'lon' or 'y' and 'x')
+        # Your updated NetCDF creation script outputs 'lat' and 'lon' as the primary dimensions
+        if 'lat' not in ds.dimensions or 'lon' not in ds.dimensions:
+            errors.append("Missing 'lat' or 'lon' dimensions in the processed file")
             ds.close()
-            return False, None, None, errors
+            return False, None, None, errors, warnings  # 5 items
         
-        south_north = len(ds.dimensions['south_north'])
-        west_east = len(ds.dimensions['west_east'])
-        grid_shape = (south_north, west_east)
+        lat_dim = len(ds.dimensions['lat'])
+        lon_dim = len(ds.dimensions['lon'])
+        grid_shape = (lat_dim, lon_dim)
         
         # Check SPDUV10MAX variable
         if 'SPDUV10MAX' not in ds.variables:
             errors.append("Missing SPDUV10MAX variable")
             ds.close()
-            return False, grid_shape, None, errors
+            return False, grid_shape, None, errors, warnings  # 5 items
         
         # Extract data
         spduv = ds.variables['SPDUV10MAX'][:]
@@ -69,15 +71,15 @@ def validate_file(file_path):
         if spduv.ndim == 3:
             spduv = spduv[0, :, :]  # Take first time step
         elif spduv.ndim != 2:
-            errors.append(f"Unexpected dimensions: {spduv.shape}")
+            errors.append(f"Unexpected data dimensions: {spduv.shape}")
             ds.close()
-            return False, grid_shape, None, errors
+            return False, grid_shape, None, errors, warnings  # 5 items
         
         # Check for expected grid
         if spduv.shape != grid_shape:
-            errors.append(f"Data shape {spduv.shape} doesn't match grid {grid_shape}")
+            errors.append(f"Data shape {spduv.shape} doesn't match grid template {grid_shape}")
             ds.close()
-            return False, grid_shape, None, errors
+            return False, grid_shape, None, errors, warnings  # 5 items
         
         # Data quality checks
         nan_count = np.isnan(spduv).sum()
@@ -94,17 +96,22 @@ def validate_file(file_path):
         
         data = spduv
         ds.close()
+        
         is_valid = len(errors) == 0
-        return is_valid, grid_shape, data, errors, warnings
+        return is_valid, grid_shape, data, errors, warnings  # 5 items
         
     except Exception as e:
-        errors.append(f"Error reading file: {str(e)}")
-        return False, None, None, errors
+        errors.append(f"Error reading file structure: {str(e)}")
+        return False, None, None, errors, warnings  # 5 items
 
 def main():
-    # Paths
-    base_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\raw_data\annual_max'
-    output_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\raw_data'
+# Paths
+    # FIX: Point to the parent directory 'year_raw_data'
+    base_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\year_raw_data'
+    output_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\output'
+    
+    # Ensure the output directory exists before writing to it
+    os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, 'validated_annual_max_data.h5')
     
     # Check if directory exists
