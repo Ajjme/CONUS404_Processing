@@ -107,8 +107,8 @@ def validate_file(file_path):
 def main():
 # Paths
     # FIX: Point to the parent directory 'year_raw_data'
-    base_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\year_raw_data'
-    output_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\output'
+    base_dir = '/Users/andrewjohnson/Documents/GitHub/CONUS404_Processing/year_raw_data'
+    output_dir = '/Users/andrewjohnson/Documents/GitHub/CONUS404_Processing/output'
     
     # Ensure the output directory exists before writing to it
     os.makedirs(output_dir, exist_ok=True)
