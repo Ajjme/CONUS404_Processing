@@ -114,7 +114,7 @@ def init_worker(validated_data):
 
 def main():
     # Paths
-    base_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\raw_data'
+    base_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\output'
     input_file = os.path.join(base_dir, 'validated_annual_max_data.h5')
     output_dir = base_dir
     output_params_file = os.path.join(output_dir, 'gev_parameters.h5')
