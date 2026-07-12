@@ -65,7 +65,7 @@ import matplotlib.colors as mcolors
 
 def setup_directories():
     """Define and create necessary directories."""
-    base_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\raw_data\return_periods'
+    base_dir = '/Users/andrewjohnson/Documents/GitHub/CONUS404_Processing/output/return_periods'
     input_nc = os.path.join(base_dir, 'gev_return_periods.nc')
     vis_dir = os.path.join(base_dir, 'visualizations')
     
@@ -98,7 +98,7 @@ def plot_spatial_map(ds, rp, vis_dir):
     print(f"✓ Saved: {out_path}")
 
 def plot_uncertainty_map(ds, rp, vis_dir):
-    """Plot the width of the 95% confidence interval to visualize uncertainty."""
+    """Plot the width of the 95% confidence interval with outlier handling."""
     print(f"Generating uncertainty map for {rp}-year return period...")
     
     upper_var = f'rp_{rp}_upper_ci'
@@ -110,11 +110,23 @@ def plot_uncertainty_map(ds, rp, vis_dir):
     # Calculate CI width
     ci_width = upper_data - lower_data
     
+    # 1. Diagnostic Prints to see what's actually in the data
+    valid_ci = ci_width[~np.isnan(ci_width)]
+    print(f"  -> Min Uncertainty: {np.min(valid_ci):.2f} m/s")
+    print(f"  -> Mean Uncertainty: {np.mean(valid_ci):.2f} m/s")
+    print(f"  -> Max Uncertainty: {np.max(valid_ci):.2f} m/s")
+    
+    # 2. Cap the colorbar at the 98th percentile to hide extreme outliers
+    vmax_val = np.percentile(valid_ci, 98)
+    print(f"  -> Capping colorbar at {vmax_val:.2f} m/s (98th percentile)")
+    
     plt.figure(figsize=(10, 8))
-    im = plt.imshow(ci_width, cmap='magma', origin='lower')
+    
+    # Use vmax to restrict the color scale
+    im = plt.imshow(ci_width, cmap='magma', origin='lower', vmin=0, vmax=vmax_val)
     plt.colorbar(im, label='95% CI Width (m/s)', extend='max')
     
-    plt.title(f'Uncertainty (95% CI Width) for {rp}-Year Return Level')
+    plt.title(f'Uncertainty (95% CI Width) for {rp}-Year Return Level\n(Capped at 98th percentile)')
     plt.xlabel('West-East Grid Index')
     plt.ylabel('South-North Grid Index')
     

@@ -146,7 +146,7 @@ def plot_point_diagnostics(raw_data, location, scale, shape, points):
     plt.show()
 
 def main():
-    base_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\output'
+    base_dir = '/Users/andrewjohnson/Documents/GitHub/CONUS404_Processing/output'
     params_file = os.path.join(base_dir, 'gev_parameters.h5')
     raw_data_file = os.path.join(base_dir, 'validated_annual_max_data.h5')
 

@@ -97,7 +97,7 @@ def gev_return_level_ci(return_period, location, scale, shape, data_points=40):
 
 def main():
     # Paths
-    base_dir = r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing\raw_data'
+    base_dir = '/Users/andrewjohnson/Documents/GitHub/CONUS404_Processing/output'
     params_file = os.path.join(base_dir, 'gev_parameters.h5')
     output_dir = os.path.join(base_dir, 'return_periods')
     output_nc = os.path.join(output_dir, 'gev_return_periods.nc')
