@@ -48,14 +48,8 @@ def gev_return_level(return_period, location, scale, shape):
 def gev_return_level_ci(return_period, location, scale, shape, data_points=40):
     """
     Calculate confidence intervals for GEV return level using delta method.
-    
-    Args:
-        return_period: Return period in years
-        location, scale, shape: GEV parameters
-        data_points: Number of data points used for fitting (for SE estimation)
-    
-    Returns:
-        (lower_ci, upper_ci) at 95% confidence level
+    Includes a L'Hôpital limit switch for the Gumbel domain (ξ ≈ 0) to prevent
+    variance explosion.
     """
     # Calculate return level
     rp_level = gev_return_level(return_period, location, scale, shape)
@@ -64,21 +58,27 @@ def gev_return_level_ci(return_period, location, scale, shape, data_points=40):
         return np.nan, np.nan
     
     try:
-        # For delta method, estimate standard error based on:
-        # - Return period (longer periods → wider CI)
-        # - Sample size (fewer data points → wider CI)
-        # - Shape parameter (accounts for tail behavior)
-        
-        # Approximate SE based on empirical factors
-        # This is a simplified approach; full Bayesian/profile likelihood would be more accurate
+        # p is the non-exceedance probability
         p = 1.0 - 1.0 / return_period
-        log_log_p = np.log(-np.log(p))
         
-        # Variance approximation (simplified)
-        if abs(shape) > 1e-6:
-            var_factor = (1.0 + shape * log_log_p) ** 2 / (shape ** 2)
+        # y is the standard Gumbel reduced variate equivalent
+        y = -np.log(p)
+        log_log_p = np.log(y) 
+        
+        # Delta Method gradient approximations (derivatives of the return level formula)
+        if abs(shape) > 1e-5:
+            # Standard GEV gradients for scale and shape
+            d_scale = (1.0 - y**shape) / shape
+            d_shape = - (1.0 - y**shape) / (shape**2) + (y**shape) * log_log_p / shape
         else:
-            var_factor = 1.0
+            # Gumbel limit (ξ -> 0) derived via L'Hôpital's rule
+            # Bypasses the division by shape**2 entirely
+            d_scale = -log_log_p
+            d_shape = -0.5 * (log_log_p ** 2)
+            
+        # Combine the gradients into a structural variance factor
+        # Using the magnitude of the gradient vector to scale the standard error
+        var_factor = np.sqrt(d_scale**2 + d_shape**2)
         
         # Increase uncertainty for long return periods
         rp_factor = np.log(return_period + 1)
