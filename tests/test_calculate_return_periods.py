@@ -1,0 +1,107 @@
+import importlib.util
+import io
+from pathlib import Path
+import tempfile
+import unittest
+from contextlib import redirect_stdout
+
+import h5py
+import netCDF4 as nc
+import numpy as np
+import pandas as pd
+
+
+MODULE_PATH = Path(__file__).resolve().parents[1] / "40_calculate_return_periods.py"
+SPEC = importlib.util.spec_from_file_location("calculate_return_periods", MODULE_PATH)
+RETURN_PERIODS = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(RETURN_PERIODS)
+
+
+class Convert20sTo3sGustTests(unittest.TestCase):
+    def test_scalar_uses_rounded_durst_factor(self):
+        converted = RETURN_PERIODS.convert_20s_to_3s_gust(100.0)
+
+        self.assertAlmostEqual(converted, 111.76)
+        self.assertEqual(RETURN_PERIODS.convert_20s_to_3s_gust(1.0), 1.1176)
+        self.assertNotEqual(converted, 100.0 * (1.52 / 1.36))
+        self.assertNotEqual(converted, 100.0 * 1.118)
+
+    def test_array_preserves_shape_dtype_nans_and_input(self):
+        native = np.array([[10.0, np.nan], [25.5, 0.0]], dtype=np.float32)
+        original = native.copy()
+
+        converted = RETURN_PERIODS.convert_20s_to_3s_gust(native)
+
+        self.assertEqual(converted.shape, native.shape)
+        self.assertEqual(converted.dtype, native.dtype)
+        np.testing.assert_array_equal(native, original)
+        np.testing.assert_allclose(
+            converted,
+            native * np.float32(1.1176),
+            rtol=0.0,
+            atol=0.0,
+            equal_nan=True,
+        )
+
+
+class Phase4ExportTests(unittest.TestCase):
+    def test_exports_native_and_3sec_gust_products(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            params_path = Path(temp_dir) / "gev_parameters.h5"
+            with h5py.File(params_path, "w") as params:
+                params.create_dataset("location", data=np.full((2, 2), 30.0))
+                params.create_dataset("scale", data=np.full((2, 2), 5.0))
+                params.create_dataset("shape", data=np.full((2, 2), -0.1))
+                params.create_dataset("converged", data=np.ones((2, 2), dtype=bool))
+                params.attrs["south_north"] = 2
+                params.attrs["west_east"] = 2
+                params.attrs["num_years"] = 45
+
+            with redirect_stdout(io.StringIO()):
+                RETURN_PERIODS.main(temp_dir)
+
+            netcdf_path = Path(temp_dir) / "return_periods" / "gev_return_periods.nc"
+            with nc.Dataset(netcdf_path) as dataset:
+                np.testing.assert_array_equal(
+                    dataset.variables["return_period"][:],
+                    [10, 25, 50, 100, 200, 500],
+                )
+                self.assertEqual(dataset.dimensions["return_period"].size, 6)
+                self.assertEqual(dataset.gust_conversion_factor, 1.1176)
+                self.assertEqual(dataset.source_duration_seconds, 20)
+                self.assertEqual(dataset.target_duration_seconds, 3)
+                self.assertIn(
+                    "Log-linear interpolation",
+                    dataset.durst_coefficient_20sec_derivation,
+                )
+
+                expected_variables = {
+                    "wind_speed_native",
+                    "wind_speed_native_lower_ci",
+                    "wind_speed_native_upper_ci",
+                    "wind_speed_3sec_gust",
+                    "wind_speed_3sec_gust_lower_ci",
+                    "wind_speed_3sec_gust_upper_ci",
+                }
+                self.assertTrue(expected_variables.issubset(dataset.variables))
+
+                native = dataset.variables["wind_speed_native"][:]
+                gust = dataset.variables["wind_speed_3sec_gust"][:]
+                np.testing.assert_allclose(gust, native * 1.1176, rtol=1e-6)
+                np.testing.assert_array_equal(
+                    dataset.variables["rp_10_estimate"][:],
+                    native[0],
+                )
+
+            csv_path = Path(temp_dir) / "return_periods" / "gev_return_periods.csv"
+            csv_output = pd.read_csv(csv_path)
+            self.assertIn("rp_10_3sec_gust", csv_output.columns)
+            self.assertIn("rp_500_3sec_gust_upper", csv_output.columns)
+            np.testing.assert_array_equal(
+                csv_output["gust_conversion_factor"].to_numpy(),
+                np.full(4, 1.1176),
+            )
+
+
+if __name__ == "__main__":
+    unittest.main()

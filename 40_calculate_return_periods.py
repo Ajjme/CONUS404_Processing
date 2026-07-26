@@ -5,8 +5,9 @@ This script:
 1. Loads GEV parameters (μ, σ, ξ) from Phase 2
 2. Calculates return level for each return period using GEV inverse CDF
 3. Computes 95% confidence intervals via delta method
-4. Exports results to both NetCDF (spatial) and CSV (tabular) formats
-5. Generates quality report
+4. Converts native 20-second return levels to 3-second engineering gusts
+5. Exports native and converted results to NetCDF and CSV formats
+6. Generates quality report
 """
 
 import os
@@ -16,6 +17,33 @@ import netCDF4 as nc
 import pandas as pd
 from scipy.stats import genextreme, norm
 from datetime import datetime
+
+def convert_20s_to_3s_gust(v_base_20s):
+    """Convert CONUS404 20-second wind maxima to 3-second gust speeds.
+
+    The Durst Curve relates maximum wind speeds averaged over a specified
+    duration to an hourly mean wind speed. This conversion uses the ratio of
+    the ASCE 7 Durst coefficients for 3 seconds (1.52) and 20 seconds (1.36)
+    to align CONUS404 ``wrfxtrm`` wind maxima, interpreted at the 20-second
+    model time step, with the 3-second gust duration used by engineering
+    applications such as Hazus fragility functions. The 20-second coefficient
+    is derived by log-linear interpolation of the 10- and 30-second empirical
+    Durst values. The coefficients assume the standard open-terrain exposure
+    convention.
+
+    Args:
+        v_base_20s: Scalar or NumPy array of native 20-second wind speeds.
+
+    Returns:
+        The input wind speeds multiplied by the rounded Durst coefficient
+        ratio. Array shapes and NaN values are preserved. This deterministic
+        conversion does not add uncertainty beyond that of the native values.
+    """
+    DURST_3S = 1.52
+    DURST_20S = 1.36
+    GUST_FACTOR = round(DURST_3S / DURST_20S, 4)
+
+    return v_base_20s * GUST_FACTOR
 
 def gev_return_level(return_period, location, scale, shape):
     """
@@ -95,9 +123,10 @@ def gev_return_level_ci(return_period, location, scale, shape, data_points=40):
     except:
         return np.nan, np.nan
 
-def main():
+def main(base_dir=None):
     # Paths
-    base_dir = '/Users/andrewjohnson/Documents/GitHub/CONUS404_Processing/output'
+    if base_dir is None:
+        base_dir = '/Users/andrewjohnson/Documents/GitHub/CONUS404_Processing/output'
     params_file = os.path.join(base_dir, 'gev_parameters.h5')
     output_dir = os.path.join(base_dir, 'return_periods')
     output_nc = os.path.join(output_dir, 'gev_return_periods.nc')
@@ -173,6 +202,18 @@ def main():
             print(f"  Progress: {lat + 1} / {south_north} rows ({pct:.1f}%)")
     
     print("✓ Return level calculation complete")
+
+    # Apply the duration conversion after GEV fitting and return-level calculation.
+    gust_factor = convert_20s_to_3s_gust(1.0)
+    gust_result_grids = {}
+    for rp in return_periods:
+        gust_result_grids[rp] = {
+            'estimate': convert_20s_to_3s_gust(result_grids[rp]['estimate']),
+            'lower': convert_20s_to_3s_gust(result_grids[rp]['lower']),
+            'upper': convert_20s_to_3s_gust(result_grids[rp]['upper'])
+        }
+
+    print(f"✓ Applied Durst 20-second to 3-second gust factor: {gust_factor:.4f}")
     
     # Create NetCDF output
     print(f"\nCreating NetCDF output: {output_nc}...")
@@ -180,12 +221,13 @@ def main():
         ds_out = nc.Dataset(output_nc, 'w', format='NETCDF4')
         
         # Dimensions
+        ds_out.createDimension('return_period', len(return_periods))
         ds_out.createDimension('south_north', south_north)
         ds_out.createDimension('west_east', west_east)
         
         # Global attributes
         ds_out.title = 'CONUS404 GEV Return Period Analysis'
-        ds_out.description = 'Generalized Extreme Value distribution return periods for SPDUV10MAX'
+        ds_out.description = 'Native and Durst-converted Generalized Extreme Value return periods for SPDUV10MAX'
         ds_out.variable = 'SPDUV10MAX (Daily maximum wind speed at 10 meters)'
         ds_out.units = 'm/s'
         ds_out.method = 'Block Maxima (annual) fitted to GEV via MLE'
@@ -194,8 +236,62 @@ def main():
         ds_out.ci_method = 'Delta method approximation'
         ds_out.created_date = datetime.now().isoformat()
         ds_out.grid_dimensions = f'{south_north} x {west_east}'
+        ds_out.gust_conversion_factor = gust_factor
+        ds_out.durst_coefficient_3sec = 1.52
+        ds_out.durst_coefficient_20sec = 1.36
+        ds_out.durst_coefficient_20sec_derivation = 'Log-linear interpolation of the 10-second and 30-second empirical Durst values'
+        ds_out.source_duration_seconds = 20
+        ds_out.target_duration_seconds = 3
+        ds_out.source_duration_interpretation = 'CONUS404 wrfxtrm SPDUV10MAX maxima at the 20-second model time step'
+        ds_out.gust_conversion_method = 'Durst Curve coefficient ratio: C_Durst(3 s) / C_Durst(20 s)'
+        ds_out.gust_conversion_reference = 'ASCE 7 Commentary Figure C26.5-1, Maximum Speed Averaged over t to Hourly Mean Speed'
+        ds_out.exposure_convention = 'Standard open terrain'
+        ds_out.gust_conversion_uncertainty = 'No additional conversion uncertainty modeled; native estimates and CI bounds are multiplied by the same deterministic factor'
+
+        rp_variable = ds_out.createVariable('return_period', 'i4', ('return_period',))
+        rp_variable.long_name = 'Return period'
+        rp_variable.units = 'years'
+        rp_variable[:] = return_periods
+
+        output_dimensions = ('return_period', 'south_north', 'west_east')
+        dimensioned_variables = {
+            'wind_speed_native': ds_out.createVariable('wind_speed_native', 'f4', output_dimensions),
+            'wind_speed_native_lower_ci': ds_out.createVariable('wind_speed_native_lower_ci', 'f4', output_dimensions),
+            'wind_speed_native_upper_ci': ds_out.createVariable('wind_speed_native_upper_ci', 'f4', output_dimensions),
+            'wind_speed_3sec_gust': ds_out.createVariable('wind_speed_3sec_gust', 'f4', output_dimensions),
+            'wind_speed_3sec_gust_lower_ci': ds_out.createVariable('wind_speed_3sec_gust_lower_ci', 'f4', output_dimensions),
+            'wind_speed_3sec_gust_upper_ci': ds_out.createVariable('wind_speed_3sec_gust_upper_ci', 'f4', output_dimensions)
+        }
+
+        dimensioned_variables['wind_speed_native'].long_name = 'Native CONUS404 20-second model-time-step return-level estimate'
+        dimensioned_variables['wind_speed_native_lower_ci'].long_name = 'Native CONUS404 return-level 95% CI lower bound'
+        dimensioned_variables['wind_speed_native_upper_ci'].long_name = 'Native CONUS404 return-level 95% CI upper bound'
+        dimensioned_variables['wind_speed_3sec_gust'].long_name = 'Durst-converted 3-second gust return-level estimate'
+        dimensioned_variables['wind_speed_3sec_gust_lower_ci'].long_name = 'Durst-converted 3-second gust return-level 95% CI lower bound'
+        dimensioned_variables['wind_speed_3sec_gust_upper_ci'].long_name = 'Durst-converted 3-second gust return-level 95% CI upper bound'
+
+        for variable in dimensioned_variables.values():
+            variable.units = 'm/s'
+
+        for variable_name in (
+            'wind_speed_3sec_gust',
+            'wind_speed_3sec_gust_lower_ci',
+            'wind_speed_3sec_gust_upper_ci'
+        ):
+            dimensioned_variables[variable_name].gust_conversion_factor = gust_factor
+            dimensioned_variables[variable_name].source_duration_seconds = 20
+            dimensioned_variables[variable_name].target_duration_seconds = 3
+            dimensioned_variables[variable_name].gust_conversion_method = 'Durst Curve coefficient ratio'
+
+        for rp_index, rp in enumerate(return_periods):
+            dimensioned_variables['wind_speed_native'][rp_index, :, :] = result_grids[rp]['estimate']
+            dimensioned_variables['wind_speed_native_lower_ci'][rp_index, :, :] = result_grids[rp]['lower']
+            dimensioned_variables['wind_speed_native_upper_ci'][rp_index, :, :] = result_grids[rp]['upper']
+            dimensioned_variables['wind_speed_3sec_gust'][rp_index, :, :] = gust_result_grids[rp]['estimate']
+            dimensioned_variables['wind_speed_3sec_gust_lower_ci'][rp_index, :, :] = gust_result_grids[rp]['lower']
+            dimensioned_variables['wind_speed_3sec_gust_upper_ci'][rp_index, :, :] = gust_result_grids[rp]['upper']
         
-        # Create variables for each return period
+        # Retain native per-period variables for downstream compatibility.
         for rp in return_periods:
             var_estimate = ds_out.createVariable(f'rp_{rp}_estimate', 'f4', ('south_north', 'west_east'))
             var_lower = ds_out.createVariable(f'rp_{rp}_lower_ci', 'f4', ('south_north', 'west_east'))
@@ -208,6 +304,9 @@ def main():
             var_estimate.units = 'm/s'
             var_lower.units = 'm/s'
             var_upper.units = 'm/s'
+            var_estimate.compatibility_alias_for = f'wind_speed_native at return_period={rp}'
+            var_lower.compatibility_alias_for = f'wind_speed_native_lower_ci at return_period={rp}'
+            var_upper.compatibility_alias_for = f'wind_speed_native_upper_ci at return_period={rp}'
             
             var_estimate[:] = result_grids[rp]['estimate']
             var_lower[:] = result_grids[rp]['lower']
@@ -234,7 +333,11 @@ def main():
             csv_data[f'rp_{rp}'] = []
             csv_data[f'rp_{rp}_lower'] = []
             csv_data[f'rp_{rp}_upper'] = []
+            csv_data[f'rp_{rp}_3sec_gust'] = []
+            csv_data[f'rp_{rp}_3sec_gust_lower'] = []
+            csv_data[f'rp_{rp}_3sec_gust_upper'] = []
         
+        csv_data['gust_conversion_factor'] = []
         csv_data['converged'] = []
         
         # Populate data
@@ -247,7 +350,11 @@ def main():
                     csv_data[f'rp_{rp}'].append(result_grids[rp]['estimate'][lat, lon])
                     csv_data[f'rp_{rp}_lower'].append(result_grids[rp]['lower'][lat, lon])
                     csv_data[f'rp_{rp}_upper'].append(result_grids[rp]['upper'][lat, lon])
+                    csv_data[f'rp_{rp}_3sec_gust'].append(gust_result_grids[rp]['estimate'][lat, lon])
+                    csv_data[f'rp_{rp}_3sec_gust_lower'].append(gust_result_grids[rp]['lower'][lat, lon])
+                    csv_data[f'rp_{rp}_3sec_gust_upper'].append(gust_result_grids[rp]['upper'][lat, lon])
                 
+                csv_data['gust_conversion_factor'].append(gust_factor)
                 csv_data['converged'].append(int(converged_grid[lat, lon]))
         
         # Create DataFrame and save
@@ -274,10 +381,12 @@ def main():
         uppers = result_grids[rp]['upper'][~np.isnan(result_grids[rp]['upper'])]
         
         if len(estimates) > 0:
+            gust_estimates = gust_result_grids[rp]['estimate'][~np.isnan(gust_result_grids[rp]['estimate'])]
             print(f"\n{rp}-year Return Period:")
-            print(f"  Estimate: {np.mean(estimates):.2f} ± {np.std(estimates):.2f} m/s")
-            print(f"  Range: {np.min(estimates):.2f} - {np.max(estimates):.2f} m/s")
-            print(f"  CI width (mean): {np.mean(uppers - lowers):.2f} m/s")
+            print(f"  Native estimate: {np.mean(estimates):.2f} ± {np.std(estimates):.2f} m/s")
+            print(f"  Native range: {np.min(estimates):.2f} - {np.max(estimates):.2f} m/s")
+            print(f"  Native CI width (mean): {np.mean(uppers - lowers):.2f} m/s")
+            print(f"  3-second gust estimate: {np.mean(gust_estimates):.2f} ± {np.std(gust_estimates):.2f} m/s")
     
     # Monotonicity check
     print("\n" + "=" * 80)
@@ -300,6 +409,25 @@ def main():
     else:
         print("✗ WARNING: Some return levels do not increase monotonically!")
         print("  This may indicate fitting issues at certain grid points")
+
+    ratio_consistent = True
+    for rp in return_periods:
+        for result_name in ('estimate', 'lower', 'upper'):
+            expected = result_grids[rp][result_name] * gust_factor
+            if not np.allclose(
+                gust_result_grids[rp][result_name],
+                expected,
+                rtol=0.0,
+                atol=0.0,
+                equal_nan=True
+            ):
+                ratio_consistent = False
+                break
+
+    if ratio_consistent:
+        print(f"✓ All 3-second gust values equal native values × {gust_factor:.4f}")
+    else:
+        print("✗ WARNING: Some 3-second gust values do not match the Durst conversion factor")
     
     # Summary
     print("\n" + "=" * 80)

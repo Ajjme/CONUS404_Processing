@@ -15,8 +15,9 @@ This project processes CONUS404 WRF extreme (wrfxtrm) data to:
 3. Validate and consolidate all annual maximum NetCDF files into a single analyzed dataset
 4. Fit Generalized Extreme Value (GEV) distributions using the Block Maxima method (MLE)
 5. Calculate return period wind speeds (10, 25, 50, 100, 200, 500 years) with 95% confidence intervals
-6. Export results as both NetCDF (spatial) and CSV (tabular) formats
-7. Generate diagnostic visualizations and validation plots
+6. Convert native 20-second model-time-step return levels to 3-second engineering gusts using the Durst Curve
+7. Export native and 3-second gust results as both NetCDF (spatial) and CSV (tabular) formats
+8. Generate diagnostic visualizations and validation plots
 
 ---
 
@@ -100,9 +101,11 @@ Computes wind speed return levels and 95% confidence intervals for all grid poin
   - Calculates return level via GEV inverse CDF: `x = μ + (σ/ξ) × [1 − (−log(1 − 1/R))^ξ]`
   - Computes 95% confidence intervals using the delta method
   - Verifies monotonic increase across return periods
+- After return-level calculation, converts native CONUS404 20-second model-time-step wind maxima to 3-second engineering gusts using the Durst Curve factor `1.1176`
+- Preserves native estimates and confidence bounds; the conversion is written as a parallel derived product rather than overwriting source-duration results
 - Exports results in two formats:
-  - **NetCDF** (`gev_return_periods.nc`): spatial grids per return period with estimate, lower CI, and upper CI variables
-  - **CSV** (`gev_return_periods.csv`): one row per grid point with all return period estimates and a `fit_status` column
+  - **NetCDF** (`gev_return_periods.nc`): dimensioned native and 3-second gust estimates and confidence bounds, plus legacy native `rp_*` aliases
+  - **CSV** (`gev_return_periods.csv`): one row per grid point with parallel native and 3-second gust columns, the conversion factor, and a `converged` column
 
 **Input:** `output/gev_parameters.h5`  
 **Output:** `output/return_periods/gev_return_periods.nc`, `output/return_periods/gev_return_periods.csv`
@@ -146,6 +149,8 @@ CONUS404_Processing/
 ├── plotly_standard_graphic_engine.py     # Shared CADENCE Plotly theme template
 ├── CADENCE_Design_System.md             # Design system color & typography reference
 ├── SETUP_GUIDE.md                        # Quick-start setup guide
+├── tests/
+│   └── test_calculate_return_periods.py  # Phase 4 conversion and export tests
 │
 ├── year_raw_data/                        # Per-water-year extracted NetCDF files
 │   ├── water_year_1980/
@@ -198,6 +203,35 @@ $$x = \mu + \frac{\sigma}{\xi} \left[1 - \left(-\ln\left(1 - \frac{1}{R}\right)\
 - **Method:** Delta method (95%)
 - **Behavior:** Intervals widen significantly for longer return periods — this is statistically correct for a ~40-year record extrapolated to 200–500 year events
 
+### Wind-Duration Conversion
+
+CONUS404 `wrfxtrm` wind maxima are interpreted at the model's 20-second time step, while Hazus fragility functions and ASCE 7 engineering wind speeds use a 3-second gust standard. Phase 4 applies the Durst Curve after fitting the GEV distribution and calculating native return levels:
+
+$$G_{20s\rightarrow3s} = \operatorname{round}\left(\frac{C_{\mathrm{Durst}}(3s)}{C_{\mathrm{Durst}}(20s)}, 4\right) = \operatorname{round}\left(\frac{1.52}{1.36}, 4\right) = 1.1176$$
+
+$$V_{3s}(g,R) = 1.1176\,V_{20s}(g,R)$$
+
+- **Source duration:** 20 seconds, interpreted from the CONUS404 model time step
+- **Target duration:** 3-second engineering gust
+- **20-second coefficient:** `1.36`, derived by log-linear interpolation of the 10- and 30-second empirical Durst values
+- **Reference:** ASCE 7 Commentary Figure C26.5-1, *Maximum Speed Averaged over t to Hourly Mean Speed*
+- **Exposure convention:** Standard open terrain
+- **Confidence intervals:** Native lower and upper bounds are multiplied by the same deterministic factor; no additional uncertainty is assigned to the Durst conversion
+- **Scope:** This duration adjustment does not correct for terrain, exposure category, height, model physics, spatial resolution, or other statistical uncertainties
+
+The primary NetCDF variables use dimensions `(return_period, south_north, west_east)`:
+
+| Variable | Description |
+|----------|-------------|
+| `wind_speed_native` | Native 20-second model-time-step return-level estimate |
+| `wind_speed_native_lower_ci` | Native 95% CI lower bound |
+| `wind_speed_native_upper_ci` | Native 95% CI upper bound |
+| `wind_speed_3sec_gust` | Durst-converted 3-second gust estimate |
+| `wind_speed_3sec_gust_lower_ci` | Converted 95% CI lower bound |
+| `wind_speed_3sec_gust_upper_ci` | Converted 95% CI upper bound |
+
+The existing per-period NetCDF variables such as `rp_100_estimate`, `rp_100_lower_ci`, and `rp_100_upper_ci` remain native-value compatibility aliases used by Phase 5. CSV columns retain native `rp_R`, `rp_R_lower`, and `rp_R_upper` values and add `rp_R_3sec_gust`, `rp_R_3sec_gust_lower`, and `rp_R_3sec_gust_upper`, plus `gust_conversion_factor`.
+
 ### Projection
 - **Source CRS:** Lambert Conformal Conic (LCC) — TRUELAT1=30°, TRUELAT2=50°, CLAT=39.1°, CLON=−97.9°, dx=dy=4 km
 - **Output CRS:** WGS84 (lat/lon)
@@ -218,6 +252,9 @@ All visualizations use the **CADENCE design system** color palette:
 | Spatial resolution | 4 km |
 | Temporal coverage | Water years 1980–2024 (up to 45 years) |
 | Variable | SPDUV10MAX — daily maximum 10-m wind speed (m/s) |
+| Native duration interpretation | 20-second model time step |
+| Engineering gust duration | 3 seconds |
+| Durst conversion factor | 1.1176 |
 | Return periods | 10, 25, 50, 100, 200, 500 years |
 | Confidence level | 95% |
 | Data units | m/s |
@@ -254,7 +291,7 @@ python 50_validation_return_periods.py   # Phase 5 (validation)
 ### MLE Convergence Issues
 - **Symptom:** Fit fails to converge at some grid points
 - **Cause:** Extreme outliers or degenerate wind speed patterns (e.g., constant values)
-- **Solution:** Check `fit_status` column in CSV output; review `diagnostic_convergence.png` from `31_gev_validation.py`
+- **Solution:** Check the `converged` column in CSV output; review `diagnostic_convergence.png` from `31_gev_validation.py`
 
 ### Memory Usage (Large Dataset)
 - **Symptom:** Script runs out of RAM during multiprocessing
@@ -279,3 +316,4 @@ python 50_validation_return_periods.py   # Phase 5 (validation)
 - **scipy.stats.genextreme:** https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.genextreme.html
 - **Block Maxima Method:** https://en.wikipedia.org/wiki/Extreme_value_theory#Block_maxima
 - **CONUS404 Dataset:** https://www.sciencebase.gov/catalog/item/6372cd09d34ed907bf6c6ab1
+- **Durst Curve:** ASCE 7 Commentary Figure C26.5-1, *Maximum Speed Averaged over t to Hourly Mean Speed*
