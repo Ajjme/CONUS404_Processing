@@ -20,6 +20,8 @@ from functools import partial
 import warnings
 from datetime import datetime
 
+from coordinate_utils import read_hdf5_coordinates, write_hdf5_coordinates
+
 warnings.filterwarnings('ignore')
 
 # Global variable for worker processes
@@ -138,6 +140,10 @@ def main():
             south_north = f.attrs['south_north']
             west_east = f.attrs['west_east']
             years = f.attrs['years'][:]
+            latitude, longitude = read_hdf5_coordinates(
+                f, (south_north, west_east)
+            )
+            coordinate_source = f.attrs.get('coordinate_source', input_file)
     except Exception as e:
         print(f"Error loading HDF5: {str(e)}")
         return
@@ -234,6 +240,9 @@ def main():
             f.create_dataset('scale', data=scale_grid, compression='gzip', compression_opts=4)
             f.create_dataset('shape', data=shape_grid, compression='gzip', compression_opts=4)
             f.create_dataset('converged', data=converged_grid, compression='gzip', compression_opts=4)
+            write_hdf5_coordinates(
+                f, latitude, longitude, coordinate_source
+            )
             
             # Metadata
             f.attrs['south_north'] = south_north

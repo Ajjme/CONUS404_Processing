@@ -1,13 +1,13 @@
 import os
 import tarfile
 import glob
+import importlib
 import shutil
 import netCDF4 as nc
 import numpy as np
-from pathlib import Path
 from datetime import datetime
-import pyproj
-from pyproj import Transformer
+
+from coordinate_utils import read_netcdf_coordinates, validate_matching_coordinates
 
 def extract_tar_archive(tar_path, extract_dir):
     """Extract tar archive to specified directory, replacing colons with underscores."""
@@ -32,6 +32,13 @@ def compute_lcc_coordinates(south_north, west_east):
     """
     Compute latitude and longitude from LCC projection parameters.
     """
+    try:
+        pyproj = importlib.import_module('pyproj')
+    except ImportError as error:
+        raise RuntimeError(
+            "pyproj is required only when source XLAT/XLONG coordinates are absent"
+        ) from error
+
     print("\nComputing lat/lon from LCC projection parameters...")
     
     dx = 4000.0  # meters per grid cell
@@ -56,7 +63,9 @@ def compute_lcc_coordinates(south_north, west_east):
         units='m'
     )
     wgs84_proj = pyproj.Proj(proj='latlong', datum='WGS84')
-    transformer = Transformer.from_proj(lcc_proj, wgs84_proj, always_xy=True)
+    transformer = pyproj.Transformer.from_proj(
+        lcc_proj, wgs84_proj, always_xy=True
+    )
     
     x = np.arange(west_east) * dx + x0
     y = np.arange(south_north) * dy + y0
@@ -79,7 +88,7 @@ def process_wrfxtrm_files(file_list, existing_max_wind=None, existing_grid_info=
     
     for i, file_path in enumerate(file_list, 1):
         print(f"  [{i}/{len(file_list)}] Processing: {os.path.basename(file_path)}")
-        
+        ds = None
         try:
             ds = nc.Dataset(file_path, 'r')
             spduv_data = ds.variables['SPDUV10MAX'][:]
@@ -89,30 +98,63 @@ def process_wrfxtrm_files(file_list, existing_max_wind=None, existing_grid_info=
             else:
                 spduv_2d = spduv_data
             
+            south_north = len(ds.dimensions['south_north'])
+            west_east = len(ds.dimensions['west_east'])
+            grid_shape = (south_north, west_east)
+
+            try:
+                lat_2d, lon_2d, coordinate_source = read_netcdf_coordinates(
+                    ds, grid_shape
+                )
+            except ValueError:
+                if grid_info is None:
+                    lat_2d, lon_2d = compute_lcc_coordinates(
+                        south_north, west_east
+                    )
+                    coordinate_source = 'LCC projection fallback'
+                else:
+                    lat_2d = grid_info['lat_2d']
+                    lon_2d = grid_info['lon_2d']
+                    coordinate_source = grid_info['coordinate_source']
+
             if grid_info is None:
-                south_north = len(ds.dimensions['south_north'])
-                west_east = len(ds.dimensions['west_east'])
-                lat_2d, lon_2d = compute_lcc_coordinates(south_north, west_east)
-                
                 grid_info = {
                     'south_north': south_north,
                     'west_east': west_east,
                     'lat_2d': lat_2d,
                     'lon_2d': lon_2d,
+                    'coordinate_source': coordinate_source,
                     'file': file_path
                 }
-                print(f"  Captured grid info: {south_north} x {west_east}")
+                print(
+                    f"  Captured grid info: {south_north} x {west_east} "
+                    f"from {coordinate_source}"
+                )
+            else:
+                if grid_shape != (
+                    grid_info['south_north'], grid_info['west_east']
+                ):
+                    raise ValueError(
+                        f"Grid shape {grid_shape} does not match reference grid"
+                    )
+                validate_matching_coordinates(
+                    grid_info['lat_2d'],
+                    grid_info['lon_2d'],
+                    lat_2d,
+                    lon_2d,
+                )
             
             if max_wind_2d is None:
                 max_wind_2d = spduv_2d.copy()
             else:
                 max_wind_2d = np.maximum(max_wind_2d, spduv_2d)
             
-            ds.close()
-            
         except Exception as e:
             print(f"  Error processing {file_path}: {e}")
             continue
+        finally:
+            if ds is not None:
+                ds.close()
     
     return max_wind_2d, grid_info
 
@@ -125,52 +167,38 @@ def create_output_netcdf(output_path, max_wind_data, grid_info):
     lat_2d = grid_info['lat_2d']
     lon_2d = grid_info['lon_2d']
     
-    lat_1d = lat_2d[:, 0]
-    lon_1d = lon_2d[0, :]
-    
     ds_out = nc.Dataset(output_path, 'w', format='NETCDF4')
     
-    ds_out.createDimension('lat', south_north)
-    ds_out.createDimension('lon', west_east)
-    ds_out.createDimension('y', south_north)
-    ds_out.createDimension('x', west_east)
-    
-    lat_var = ds_out.createVariable('lat', 'f4', ('lat',))
-    lat_var.standard_name = 'latitude'
-    lat_var.long_name = 'latitude coordinate'
-    lat_var.units = 'degrees_north'
-    lat_var.axis = 'Y'
-    lat_var[:] = lat_1d
-    
-    lon_var = ds_out.createVariable('lon', 'f4', ('lon',))
-    lon_var.standard_name = 'longitude'
-    lon_var.long_name = 'longitude coordinate'
-    lon_var.units = 'degrees_east'
-    lon_var.axis = 'X'
-    lon_var[:] = lon_1d
-    
-    lat2d_var = ds_out.createVariable('lat_2d', 'f4', ('y', 'x'))
+    ds_out.createDimension('south_north', south_north)
+    ds_out.createDimension('west_east', west_east)
+
+    spatial_dimensions = ('south_north', 'west_east')
+    lat2d_var = ds_out.createVariable('lat_2d', 'f4', spatial_dimensions)
     lat2d_var.long_name = 'latitude (2D)'
     lat2d_var.units = 'degrees_north'
     lat2d_var.standard_name = 'latitude'
     lat2d_var[:] = lat_2d
     
-    lon2d_var = ds_out.createVariable('lon_2d', 'f4', ('y', 'x'))
+    lon2d_var = ds_out.createVariable('lon_2d', 'f4', spatial_dimensions)
     lon2d_var.long_name = 'longitude (2D)'
     lon2d_var.units = 'degrees_east'
     lon2d_var.standard_name = 'longitude'
     lon2d_var[:] = lon_2d
     
-    spduv_var = ds_out.createVariable('SPDUV10MAX', 'f4', ('lat', 'lon'), zlib=True, complevel=4)
+    spduv_var = ds_out.createVariable(
+        'SPDUV10MAX', 'f4', spatial_dimensions, zlib=True, complevel=4
+    )
     spduv_var.long_name = 'Maximum Water Year wind speed at 10 meters'
     spduv_var.units = 'm s-1'
     spduv_var.standard_name = 'wind_speed'
-    spduv_var.coordinates = 'lat lon lat_2d lon_2d'
+    spduv_var.coordinates = 'lat_2d lon_2d'
     spduv_var[:] = max_wind_data
     
     ds_out.title = 'CONUS404 Maximum Water Year Wind Speed at 10m (1981)'
     ds_out.history = f'Created {datetime.now().isoformat()} across 12 monthly tar archives.'
     ds_out.Conventions = 'CF-1.7'
+    ds_out.coordinate_source = grid_info['coordinate_source']
+    ds_out.coordinate_grid = 'curvilinear'
     
     ds_out.close()
     print(f"\nOutput file created successfully!")

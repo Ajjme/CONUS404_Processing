@@ -10,6 +10,8 @@ import netCDF4 as nc
 import numpy as np
 import pandas as pd
 
+from coordinate_utils import write_hdf5_coordinates
+
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "40_calculate_return_periods.py"
 SPEC = importlib.util.spec_from_file_location("calculate_return_periods", MODULE_PATH)
@@ -48,6 +50,12 @@ class Phase4ExportTests(unittest.TestCase):
     def test_exports_native_and_3sec_gust_products(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             params_path = Path(temp_dir) / "gev_parameters.h5"
+            latitude = np.array(
+                [[35.0, 35.2], [36.1, 36.4]], dtype=np.float32
+            )
+            longitude = np.array(
+                [[-100.0, -98.9], [-100.3, -98.5]], dtype=np.float32
+            )
             with h5py.File(params_path, "w") as params:
                 params.create_dataset("location", data=np.full((2, 2), 30.0))
                 params.create_dataset("scale", data=np.full((2, 2), 5.0))
@@ -56,6 +64,9 @@ class Phase4ExportTests(unittest.TestCase):
                 params.attrs["south_north"] = 2
                 params.attrs["west_east"] = 2
                 params.attrs["num_years"] = 45
+                write_hdf5_coordinates(
+                    params, latitude, longitude, "annual-test.nc"
+                )
 
             with redirect_stdout(io.StringIO()):
                 RETURN_PERIODS.main(temp_dir)
@@ -70,6 +81,8 @@ class Phase4ExportTests(unittest.TestCase):
                 self.assertEqual(dataset.gust_conversion_factor, 1.1176)
                 self.assertEqual(dataset.source_duration_seconds, 20)
                 self.assertEqual(dataset.target_duration_seconds, 3)
+                self.assertEqual(dataset.Conventions, "CF-1.8")
+                self.assertEqual(dataset.coordinate_grid, "curvilinear")
                 self.assertIn(
                     "Log-linear interpolation",
                     dataset.durst_coefficient_20sec_derivation,
@@ -84,6 +97,16 @@ class Phase4ExportTests(unittest.TestCase):
                     "wind_speed_3sec_gust_upper_ci",
                 }
                 self.assertTrue(expected_variables.issubset(dataset.variables))
+                np.testing.assert_array_equal(dataset.variables["lat"][:], latitude)
+                np.testing.assert_array_equal(dataset.variables["lon"][:], longitude)
+                self.assertEqual(dataset.variables["lat"].dimensions, ("south_north", "west_east"))
+                self.assertEqual(dataset.variables["lat"].units, "degrees_north")
+                self.assertEqual(dataset.variables["lon"].units, "degrees_east")
+
+                for variable_name in expected_variables | {"rp_10_estimate"}:
+                    self.assertEqual(
+                        dataset.variables[variable_name].coordinates, "lat lon"
+                    )
 
                 native = dataset.variables["wind_speed_native"][:]
                 gust = dataset.variables["wind_speed_3sec_gust"][:]
@@ -97,6 +120,12 @@ class Phase4ExportTests(unittest.TestCase):
             csv_output = pd.read_csv(csv_path)
             self.assertIn("rp_10_3sec_gust", csv_output.columns)
             self.assertIn("rp_500_3sec_gust_upper", csv_output.columns)
+            np.testing.assert_allclose(
+                csv_output["latitude"].to_numpy(), latitude.ravel(), rtol=1e-7
+            )
+            np.testing.assert_allclose(
+                csv_output["longitude"].to_numpy(), longitude.ravel(), rtol=1e-7
+            )
             np.testing.assert_array_equal(
                 csv_output["gust_conversion_factor"].to_numpy(),
                 np.full(4, 1.1176),

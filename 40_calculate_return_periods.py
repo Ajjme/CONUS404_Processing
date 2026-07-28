@@ -18,6 +18,8 @@ import pandas as pd
 from scipy.stats import genextreme, norm
 from datetime import datetime
 
+from coordinate_utils import read_hdf5_coordinates
+
 def convert_20s_to_3s_gust(v_base_20s):
     """Convert CONUS404 20-second wind maxima to 3-second gust speeds.
 
@@ -160,6 +162,10 @@ def main(base_dir=None):
             south_north = f.attrs['south_north']
             west_east = f.attrs['west_east']
             num_years = f.attrs['num_years']
+            latitude, longitude = read_hdf5_coordinates(
+                f, (south_north, west_east)
+            )
+            coordinate_source = f.attrs.get('coordinate_source', params_file)
     except Exception as e:
         print(f"Error loading HDF5: {str(e)}")
         return
@@ -236,6 +242,9 @@ def main(base_dir=None):
         ds_out.ci_method = 'Delta method approximation'
         ds_out.created_date = datetime.now().isoformat()
         ds_out.grid_dimensions = f'{south_north} x {west_east}'
+        ds_out.Conventions = 'CF-1.8'
+        ds_out.coordinate_grid = 'curvilinear'
+        ds_out.coordinate_source = coordinate_source
         ds_out.gust_conversion_factor = gust_factor
         ds_out.durst_coefficient_3sec = 1.52
         ds_out.durst_coefficient_20sec = 1.36
@@ -252,6 +261,23 @@ def main(base_dir=None):
         rp_variable.long_name = 'Return period'
         rp_variable.units = 'years'
         rp_variable[:] = return_periods
+
+        spatial_dimensions = ('south_north', 'west_east')
+        latitude_variable = ds_out.createVariable(
+            'lat', 'f4', spatial_dimensions, zlib=True, complevel=4
+        )
+        latitude_variable.standard_name = 'latitude'
+        latitude_variable.long_name = 'CONUS404 grid-cell latitude'
+        latitude_variable.units = 'degrees_north'
+        latitude_variable[:] = latitude
+
+        longitude_variable = ds_out.createVariable(
+            'lon', 'f4', spatial_dimensions, zlib=True, complevel=4
+        )
+        longitude_variable.standard_name = 'longitude'
+        longitude_variable.long_name = 'CONUS404 grid-cell longitude'
+        longitude_variable.units = 'degrees_east'
+        longitude_variable[:] = longitude
 
         output_dimensions = ('return_period', 'south_north', 'west_east')
         dimensioned_variables = {
@@ -272,6 +298,7 @@ def main(base_dir=None):
 
         for variable in dimensioned_variables.values():
             variable.units = 'm/s'
+            variable.coordinates = 'lat lon'
 
         for variable_name in (
             'wind_speed_3sec_gust',
@@ -304,6 +331,9 @@ def main(base_dir=None):
             var_estimate.units = 'm/s'
             var_lower.units = 'm/s'
             var_upper.units = 'm/s'
+            var_estimate.coordinates = 'lat lon'
+            var_lower.coordinates = 'lat lon'
+            var_upper.coordinates = 'lat lon'
             var_estimate.compatibility_alias_for = f'wind_speed_native at return_period={rp}'
             var_lower.compatibility_alias_for = f'wind_speed_native_lower_ci at return_period={rp}'
             var_upper.compatibility_alias_for = f'wind_speed_native_upper_ci at return_period={rp}'
@@ -326,6 +356,8 @@ def main(base_dir=None):
         csv_data = {
             'lat_idx': [],
             'lon_idx': [],
+            'latitude': [],
+            'longitude': [],
         }
         
         # Add columns for each return period
@@ -345,6 +377,8 @@ def main(base_dir=None):
             for lon in range(west_east):
                 csv_data['lat_idx'].append(lat)
                 csv_data['lon_idx'].append(lon)
+                csv_data['latitude'].append(latitude[lat, lon])
+                csv_data['longitude'].append(longitude[lat, lon])
                 
                 for rp in return_periods:
                     csv_data[f'rp_{rp}'].append(result_grids[rp]['estimate'][lat, lon])

@@ -16,6 +16,12 @@ import h5py
 from pathlib import Path
 from datetime import datetime
 
+from coordinate_utils import (
+    read_netcdf_coordinates,
+    validate_matching_coordinates,
+    write_hdf5_coordinates,
+)
+
 def find_annual_max_files(base_dir):
     """Find all annual max wrfxtrm files across all water_year subdirectories."""
     # FIX: Added 'water_year_*' to the pattern to search all subfolders dynamically
@@ -37,49 +43,52 @@ def validate_file(file_path):
     Validate a single annual max NetCDF file using updated lat/lon dimensions.
     
     Returns:
-        (is_valid, grid_shape, data, errors, warnings)
+        (is_valid, grid_shape, data, latitude, longitude, coordinate_source,
+        errors, warnings)
     """
     errors = []
     warnings = []
     data = None
     grid_shape = None
+    latitude = None
+    longitude = None
+    coordinate_source = None
     
     try:
-        ds = nc.Dataset(file_path, 'r')
+        with nc.Dataset(file_path, 'r') as ds:
+            if 'SPDUV10MAX' not in ds.variables:
+                errors.append("Missing SPDUV10MAX variable")
+                return (
+                    False, None, None, None, None, None, errors, warnings
+                )
+
+            spduv = ds.variables['SPDUV10MAX'][:]
         
-        # FIX: Check for the dimensions actually generated ('lat' and 'lon' or 'y' and 'x')
-        # Your updated NetCDF creation script outputs 'lat' and 'lon' as the primary dimensions
-        if 'lat' not in ds.dimensions or 'lon' not in ds.dimensions:
-            errors.append("Missing 'lat' or 'lon' dimensions in the processed file")
-            ds.close()
-            return False, None, None, errors, warnings  # 5 items
-        
-        lat_dim = len(ds.dimensions['lat'])
-        lon_dim = len(ds.dimensions['lon'])
-        grid_shape = (lat_dim, lon_dim)
-        
-        # Check SPDUV10MAX variable
-        if 'SPDUV10MAX' not in ds.variables:
-            errors.append("Missing SPDUV10MAX variable")
-            ds.close()
-            return False, grid_shape, None, errors, warnings  # 5 items
-        
-        # Extract data
-        spduv = ds.variables['SPDUV10MAX'][:]
-        
-        # Handle dimensions
-        if spduv.ndim == 3:
-            spduv = spduv[0, :, :]  # Take first time step
-        elif spduv.ndim != 2:
-            errors.append(f"Unexpected data dimensions: {spduv.shape}")
-            ds.close()
-            return False, grid_shape, None, errors, warnings  # 5 items
-        
-        # Check for expected grid
-        if spduv.shape != grid_shape:
-            errors.append(f"Data shape {spduv.shape} doesn't match grid template {grid_shape}")
-            ds.close()
-            return False, grid_shape, None, errors, warnings  # 5 items
+            if spduv.ndim == 3 and spduv.shape[0] == 1:
+                spduv = spduv[0, :, :]
+            elif spduv.ndim != 2:
+                errors.append(f"Unexpected data dimensions: {spduv.shape}")
+                return (
+                    False, None, None, None, None, None, errors, warnings
+                )
+
+            grid_shape = spduv.shape
+            try:
+                latitude, longitude, coordinate_source = read_netcdf_coordinates(
+                    ds, grid_shape
+                )
+            except ValueError as error:
+                errors.append(str(error))
+                return (
+                    False,
+                    grid_shape,
+                    None,
+                    None,
+                    None,
+                    None,
+                    errors,
+                    warnings,
+                )
         
         # Data quality checks
         nan_count = np.isnan(spduv).sum()
@@ -95,14 +104,22 @@ def validate_file(file_path):
                 warnings.append(f"Very high wind speeds found: max={valid_data.max()}")
         
         data = spduv
-        ds.close()
         
         is_valid = len(errors) == 0
-        return is_valid, grid_shape, data, errors, warnings  # 5 items
+        return (
+            is_valid,
+            grid_shape,
+            data,
+            latitude,
+            longitude,
+            coordinate_source,
+            errors,
+            warnings,
+        )
         
     except Exception as e:
         errors.append(f"Error reading file structure: {str(e)}")
-        return False, None, None, errors, warnings  # 5 items
+        return False, None, None, None, None, None, errors, warnings
 
 def main():
 # Paths
@@ -137,12 +154,25 @@ def main():
     valid_data = {}
     year_list = []
     reference_grid = None
+    reference_latitude = None
+    reference_longitude = None
+    coordinate_source = None
+    coordinate_reference_file = None
     
     for file_path in files:
         year = extract_year_from_filename(file_path)
         basename = os.path.basename(file_path)
         
-        is_valid, grid_shape, data, errors, warnings = validate_file(file_path)
+        (
+            is_valid,
+            grid_shape,
+            data,
+            latitude,
+            longitude,
+            file_coordinate_source,
+            errors,
+            warnings,
+        ) = validate_file(file_path)
         
         status = "✓ VALID" if is_valid else "✗ INVALID"
         print(f"\n{status}: {basename} (Year: {year})")
@@ -161,10 +191,25 @@ def main():
             # Set reference grid from first valid file
             if reference_grid is None:
                 reference_grid = grid_shape
+                reference_latitude = latitude
+                reference_longitude = longitude
+                coordinate_source = file_coordinate_source
+                coordinate_reference_file = file_path
             
             # Check grid consistency
             if grid_shape != reference_grid:
                 print(f"  ERROR: Grid mismatch! Expected {reference_grid}, got {grid_shape}")
+                continue
+
+            try:
+                validate_matching_coordinates(
+                    reference_latitude,
+                    reference_longitude,
+                    latitude,
+                    longitude,
+                )
+            except ValueError as error:
+                print(f"  ERROR: {error}")
                 continue
             
             valid_data[year] = data
@@ -217,6 +262,12 @@ def main():
         with h5py.File(output_file, 'w') as f:
             # Save consolidated data
             ds_data = f.create_dataset('spduv10max', data=consolidated_data, compression='gzip', compression_opts=4)
+            write_hdf5_coordinates(
+                f,
+                reference_latitude,
+                reference_longitude,
+                f'{coordinate_reference_file} ({coordinate_source})',
+            )
             
             # Save metadata
             f.attrs['num_years'] = num_years

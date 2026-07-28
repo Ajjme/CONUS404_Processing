@@ -27,14 +27,14 @@ Option A - Run all phases at once (RECOMMENDED):
   python run_all_phases.py
 
 Option B - Run phases individually:
-  1. python validate_annual_max_files.py       (Phase 1)
-  2. python fit_gev_parameters.py               (Phase 2)
-  3. python calculate_return_periods.py         (Phases 3 & 4)
+  1. python 20_validate_annual_max_files.py     (Phase 1)
+  2. python 30_fit_gev_parameters.py            (Phase 2)
+  3. python 40_calculate_return_periods.py      (Phases 3 & 4)
 
 STEP 3: Check Output
 =====================
 After completion, output files will be in:
-  raw_data/return_periods/
+  output/return_periods/
     ├── gev_return_periods.nc  (NetCDF for GIS/mapping)
     └── gev_return_periods.csv (CSV for data analysis)
 
@@ -56,7 +56,8 @@ Actions:
   - Validates grid consistency (1015 × 1367)
   - Checks for missing/invalid data
   - Loads all years into single consolidated array
-  - Saves validated data to: raw_data/validated_annual_max_data.h5
+  - Preserves authoritative 2D latitude/longitude coordinates
+  - Saves validated data to: output/validated_annual_max_data.h5
 
 Output: validated_annual_max_data.h5 (~2 GB)
 
@@ -72,7 +73,7 @@ Actions:
   - Fits GEV distributions at 1,386,055 grid points via MLE
   - Extracts location (μ), scale (σ), and shape (ξ) parameters
   - Flags convergence failures and warnings
-  - Saves parameters to: raw_data/gev_parameters.h5
+  - Copies the 2D coordinate grid to: output/gev_parameters.h5
 
 Output: gev_parameters.h5 (~300 MB)
         Progress updates printed every 50,000 grid points
@@ -93,6 +94,18 @@ Actions:
 
 Output: gev_return_periods.nc (NetCDF, ~80 MB)
         gev_return_periods.csv (CSV, ~500 MB)
+
+The NetCDF contains 2D CF coordinate variables `lat(south_north, west_east)`
+and `lon(south_north, west_east)`. The CSV contains `latitude`, `longitude`,
+`lat_idx`, and `lon_idx` columns. Use latitude/longitude for mapping and retain
+the index columns for exact array lookups.
+
+For outputs created before coordinate preservation was added, run:
+  python 25_backfill_coordinates.py
+  python 40_calculate_return_periods.py
+
+This backfills both HDF5 products and regenerates only the final exports; the
+GEV fitting phase does not need to be repeated.
 
 
 DEPENDENCIES

@@ -10,6 +10,7 @@ Runs in sequence:
 import subprocess
 import sys
 import os
+from pathlib import Path
 from datetime import datetime
 
 def run_phase(phase_num, script_name, description):
@@ -19,10 +20,7 @@ def run_phase(phase_num, script_name, description):
     print("=" * 80)
     print(f"Running: {script_name}\n")
     
-    script_path = os.path.join(
-        r'c:\Users\ajj4p\Documents\GitHub\CONUS404_Processing',
-        script_name
-    )
+    script_path = Path(__file__).resolve().parent / script_name
     
     if not os.path.exists(script_path):
         print(f"✗ ERROR: Script not found: {script_path}")
@@ -30,7 +28,8 @@ def run_phase(phase_num, script_name, description):
     
     try:
         result = subprocess.run(
-            [sys.executable, script_path],
+            [sys.executable, str(script_path)],
+            cwd=script_path.parent,
             timeout=3600  # 1 hour timeout
         )
         
@@ -57,9 +56,9 @@ def main():
     print(f"Start time: {start_time.strftime('%Y-%m-%d %H:%M:%S')}\n")
     
     phases = [
-        (1, 'validate_annual_max_files.py', 'Validate Annual Max Files'),
-        (2, 'fit_gev_parameters.py', 'Fit GEV Parameters (Multiprocessing)'),
-        (3, 'calculate_return_periods.py', 'Calculate Return Periods & Export'),
+        (1, '20_validate_annual_max_files.py', 'Validate Annual Max Files'),
+        (2, '30_fit_gev_parameters.py', 'Fit GEV Parameters (Multiprocessing)'),
+        (3, '40_calculate_return_periods.py', 'Calculate Return Periods & Export'),
     ]
     
     results = {}
@@ -85,8 +84,8 @@ def main():
     print(f"Duration:   {duration:.1f} minutes")
     print("\nAll phases completed successfully!")
     print("\nOutput files created:")
-    print("  - raw_data/return_periods/gev_return_periods.nc (NetCDF)")
-    print("  - raw_data/return_periods/gev_return_periods.csv (CSV)")
+    print("  - output/return_periods/gev_return_periods.nc (NetCDF)")
+    print("  - output/return_periods/gev_return_periods.csv (CSV)")
     
     print("\nNext steps:")
     print("  1. Review the output files")

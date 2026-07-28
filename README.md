@@ -62,8 +62,9 @@ Consolidates all annual maximum NetCDF files into a single validated array for d
 
 - Scans `year_raw_data/water_year_*/` for all files matching `wrfxtrm_d01_max_spduv10max_YYYY.nc`
 - Validates each file: checks `lat`/`lon` dimension presence, grid consistency, and SPDUV10MAX variable
+- Validates each file's authoritative 2D curvilinear coordinates and rejects coordinate-grid mismatches
 - Loads all years into a single array of shape `(N_years, lat, lon)`
-- Saves validated data as an intermediate HDF5 file
+- Saves `spduv10max`, `lat_2d`, and `lon_2d` in the intermediate HDF5 file
 
 **Input:** `year_raw_data/water_year_*/wrfxtrm_d01_max_spduv10max_*.nc`  
 **Output:** `output/validated_annual_max_data.h5`
@@ -104,11 +105,24 @@ Computes wind speed return levels and 95% confidence intervals for all grid poin
 - After return-level calculation, converts native CONUS404 20-second model-time-step wind maxima to 3-second engineering gusts using the Durst Curve factor `1.1176`
 - Preserves native estimates and confidence bounds; the conversion is written as a parallel derived product rather than overwriting source-duration results
 - Exports results in two formats:
-  - **NetCDF** (`gev_return_periods.nc`): dimensioned native and 3-second gust estimates and confidence bounds, plus legacy native `rp_*` aliases
-  - **CSV** (`gev_return_periods.csv`): one row per grid point with parallel native and 3-second gust columns, the conversion factor, and a `converged` column
+  - **NetCDF** (`gev_return_periods.nc`): dimensioned native and 3-second gust estimates and confidence bounds, 2D CF auxiliary coordinates `lat`/`lon`, plus legacy native `rp_*` aliases
+  - **CSV** (`gev_return_periods.csv`): one row per grid point with `latitude`/`longitude`, stable grid indices, parallel native and 3-second gust columns, the conversion factor, and a `converged` column
 
 **Input:** `output/gev_parameters.h5`  
 **Output:** `output/return_periods/gev_return_periods.nc`, `output/return_periods/gev_return_periods.csv`
+
+The CONUS404 Lambert conformal grid is curvilinear. Latitude and longitude are
+therefore stored as 2D arrays indexed by `south_north` and `west_east`; they
+must not be treated as independent 1D axes. To enrich HDF5 products created by
+an older pipeline run without repeating the GEV fit, run:
+
+```bash
+python 25_backfill_coordinates.py
+python 40_calculate_return_periods.py
+```
+
+The backfill command validates the annual source grid against both HDF5 shapes
+and creates `.coordinate-backup` files before modification.
 
 ---
 
