@@ -20,6 +20,12 @@ from datetime import datetime
 
 from coordinate_utils import read_hdf5_coordinates
 
+WGS84_WKT = (
+    'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,'
+    '298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433],'
+    'AUTHORITY["EPSG","4326"]]'
+)
+
 def convert_20s_to_3s_gust(v_base_20s):
     """Convert CONUS404 20-second wind maxima to 3-second gust speeds.
 

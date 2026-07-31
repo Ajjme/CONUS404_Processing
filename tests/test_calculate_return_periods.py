@@ -99,14 +99,25 @@ class Phase4ExportTests(unittest.TestCase):
                 self.assertTrue(expected_variables.issubset(dataset.variables))
                 np.testing.assert_array_equal(dataset.variables["lat"][:], latitude)
                 np.testing.assert_array_equal(dataset.variables["lon"][:], longitude)
+                np.testing.assert_array_equal(dataset.variables["lat_idx"][:], [0, 1])
+                np.testing.assert_array_equal(dataset.variables["lon_idx"][:], [0, 1])
                 self.assertEqual(dataset.variables["lat"].dimensions, ("south_north", "west_east"))
                 self.assertEqual(dataset.variables["lat"].units, "degrees_north")
                 self.assertEqual(dataset.variables["lon"].units, "degrees_east")
+                self.assertEqual(dataset.variables["crs"].grid_mapping_name, "latitude_longitude")
+                self.assertEqual(dataset.variables["crs"].epsg_code, "EPSG:4326")
+                self.assertIn(
+                    'AUTHORITY["EPSG","4326"]',
+                    dataset.variables["crs"].spatial_ref,
+                )
+                self.assertEqual(dataset.geospatial_bounds_crs, "EPSG:4326")
 
                 for variable_name in expected_variables | {"rp_10_estimate"}:
                     self.assertEqual(
-                        dataset.variables[variable_name].coordinates, "lat lon"
+                        dataset.variables[variable_name].coordinates,
+                        "lat_idx lon_idx lat lon",
                     )
+                    self.assertEqual(dataset.variables[variable_name].grid_mapping, "crs")
 
                 native = dataset.variables["wind_speed_native"][:]
                 gust = dataset.variables["wind_speed_3sec_gust"][:]
